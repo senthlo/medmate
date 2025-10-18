@@ -3,434 +3,540 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MedMate — подготовка к аккредитации</title>
+<title>MedMate — интерактивная подготовка к аккредитации</title>
 
-<!-- Styles: современный, чистый, адаптивный -->
+<!-- ====== Стили: современный, насыщенный, анимированный ====== -->
 <style>
-  :root{
-    --bg1:#E6F0FF; --bg2:#FFFFFF;
-    --accent:#3B82F6; --accent-dark:#2563EB;
-    --good:#10B981; --bad:#EF4444; --muted:#6B7280;
-    --card:#F8FAFF;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;font-family:Inter, "Segoe UI", Roboto, Arial;
-    background:linear-gradient(180deg,var(--bg1),var(--bg2));
-    color:#0f172a; -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:920px;margin:18px auto;padding:20px}
-  header{display:flex;align-items:center;gap:16px}
-  .logo{
-    width:64px;height:64px;border-radius:14px;
-    background:linear-gradient(135deg,var(--accent),var(--accent-dark));
-    display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:22px;box-shadow:0 10px 30px rgba(37,99,235,0.12)
-  }
-  h1{margin:0;font-size:20px}
-  p.lead{margin:4px 0 18px;color:var(--muted)}
-  .card{background:var(--card);border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 6px 20px rgba(2,6,23,0.06)}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  button.btn{
-    appearance:none;border:0;padding:10px 14px;border-radius:10px;font-weight:600;
-    background:var(--accent);color:white;cursor:pointer;box-shadow:0 6px 18px rgba(59,130,246,0.18);
-  }
-  button.ghost{background:transparent;border:1px solid #E6EEF9;color:var(--accent)}
-  .menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .menu-card{padding:18px;border-radius:12px;text-align:left;cursor:pointer;border:1px solid rgba(15,23,42,0.03);transition:transform .12s ease,box-shadow .12s}
-  .menu-card:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(2,6,23,0.06)}
-  .menu-card h3{margin:0;font-size:16px}
-  .muted{color:var(--muted);font-size:13px}
-  #appArea{margin-top:12px}
-  .hide{display:none}
-  .progress{height:14px;background:#eef2ff;border-radius:999px;overflow:hidden}
-  .progress > i{display:block;height:100%;background:linear-gradient(90deg,#34D399,#3B82F6);width:0%;transition:width .4s ease}
-  .center{display:flex;align-items:center;justify-content:center}
-  .question{font-weight:700;margin-bottom:10px}
-  .options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  .option{padding:12px;border-radius:10px;border:1px solid rgba(2,6,23,0.06);cursor:pointer;background:white;transition:transform .08s ease,box-shadow .08s}
-  .option:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(2,6,23,0.06)}
-  .score{font-weight:700;color:var(--accent)}
-  .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:var(--accent);font-weight:600}
-  .station-steps{list-style:none;padding:0;margin:0}
-  .station-steps li{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;margin-bottom:8px;background:white;border:1px solid rgba(2,6,23,0.03)}
-  .station-steps li.done{background:linear-gradient(90deg,#ECFDF5,#F0FFF4);border-color:rgba(16,185,129,0.12)}
-  .emoji{font-size:20px;margin-right:8px}
-  .case-step{margin-bottom:12px;padding:12px;border-radius:10px;background:white;border:1px solid rgba(2,6,23,0.03)}
-  .explain{margin-top:10px;padding:12px;background:#fff7ed;border-radius:10px;border:1px solid rgba(245,158,11,0.08)}
-  footer{margin-top:20px;text-align:center;color:var(--muted);font-size:13px}
-  /* responsive */
-  @media (max-width:720px){.menu-grid{grid-template-columns:repeat(2,1fr)}.options{grid-template-columns:1fr}}
-  /* small animations */
-  .pulse{animation:pulse .9s infinite ease-in-out}
-  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
-  .kbd{font-family:monospace;background:#f1f5f9;padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0}
-  .right{color:var(--good);font-weight:700}
-  .wrong{color:var(--bad);font-weight:700}
-  .small{font-size:13px;color:var(--muted)}
+:root{
+  --bg1:#0f172a10; --card:#ffffff; --accent1:#5eead4; --accent2:#60a5fa;
+  --accent:#2563eb; --accent-2:#06b6d4; --good:#10b981; --bad:#ef4444;
+  --muted:#6b7280; --glass: rgba(255,255,255,0.6);
+  --shadow: 0 12px 30px rgba(2,6,23,0.08);
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, Arial;background:linear-gradient(180deg,#eaf2ff 0%, #ffffff 50%);color:#0f172a}
+.container{max-width:1100px;margin:18px auto;padding:18px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{
+  width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;box-shadow:var(--shadow)
+}
+.title{line-height:1}
+.title h1{margin:0;font-size:20px}
+.title p{margin:2px 0 0;color:var(--muted);font-size:13px}
+
+/* Top controls */
+.controls{display:flex;gap:10px;align-items:center}
+.xp{background:linear-gradient(90deg,#d9f99d,#86efac);padding:8px 12px;border-radius:999px;font-weight:700}
+.level{background:linear-gradient(90deg,#bfdbfe,#60a5fa);padding:8px 12px;border-radius:999px;font-weight:700;color:white}
+.streak{background:linear-gradient(90deg,#fde68a,#fca5a5);padding:8px 12px;border-radius:999px;font-weight:700}
+
+/* main layout */
+.grid{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-top:18px}
+.sidebar{position:sticky;top:18px;background:var(--card);padding:14px;border-radius:var(--radius);box-shadow:var(--shadow)}
+.nav{display:flex;flex-direction:column;gap:8px}
+.tab{padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(2,6,23,0.04);display:flex;align-items:center;gap:10px}
+.tab.active{background:linear-gradient(90deg,#eff6ff,#fff);border:1px solid rgba(37,99,235,0.12);box-shadow:0 10px 30px rgba(59,130,246,0.08)}
+.badge{margin-left:auto;background:#eef2ff;color:var(--accent);padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
+
+/* main area */
+.main{min-height:520px}
+.hero{padding:18px;border-radius:14px;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:var(--shadow);display:flex;gap:18px;align-items:center}
+.hero .left{flex:1}
+.hero .right{width:240px;text-align:center}
+.hero h2{margin:0;font-size:18px}
+.hero p{margin:6px 0 0;color:var(--muted)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.card{background:var(--card);padding:14px;border-radius:12px;box-shadow:var(--shadow);border:1px solid rgba(2,6,23,0.03)}
+.card h3{margin:0 0 8px}
+.small{color:var(--muted);font-size:13px}
+
+/* theory UI */
+.question{font-weight:800;margin-bottom:12px;font-size:18px}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.option{background:linear-gradient(180deg,#fff,#fbfdff);padding:12px;border-radius:10px;border:1px solid rgba(2,6,23,0.04);cursor:pointer;transition:transform .12s ease,box-shadow .12s}
+.option:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(2,6,23,0.06)}
+.option.correct{border-color:rgba(16,185,129,0.2);box-shadow:0 12px 30px rgba(16,185,129,0.06)}
+.option.wrong{border-color:rgba(239,68,68,0.12);box-shadow:0 12px 30px rgba(239,68,68,0.06)}
+
+/* practice station format */
+.station{
+  display:grid;grid-template-columns:1fr 360px;gap:12px;align-items:start
+}
+.station-left{padding:12px}
+.station-right{padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(2,6,23,0.03)}
+.steps{list-style:none;padding:0;margin:0}
+.steps li{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;background:white;border:1px solid rgba(2,6,23,0.03)}
+.steps li.done{background:linear-gradient(90deg,#ecfdf5,#f0fff4);border-color:rgba(16,185,129,0.12)}
+.video-placeholder{height:200px;background:linear-gradient(180deg,#eef2ff,#ffffff);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px dashed rgba(59,130,246,0.12);color:var(--muted)}
+
+/* cases */
+.case-step{padding:12px;border-radius:10px;margin-bottom:10px;background:white;border:1px solid rgba(2,6,23,0.03)}
+.case-opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+
+/* footer & misc */
+.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+.center{display:flex;align-items:center;justify-content:center}
+.progress{height:12px;background:#f1f5f9;border-radius:999px;overflow:hidden}
+.progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#34d399,#60a5fa);transition:width .5s ease}
+
+/* responsive */
+@media (max-width:980px){.grid{grid-template-columns:1fr}.station{grid-template-columns:1fr}.hero .right{display:none}}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">MM</div>
-      <div>
-        <h1>MedMate — подготовка к аккредитации</h1>
-        <p class="lead">Интерактивная мини-игра: теория, практические станции и кейсы — всё в одном. Выбери курс и начни тренироваться.</p>
-      </div>
-    </header>
-
-    <div id="mainMenu" class="card">
-      <div class="row" style="align-items:center;justify-content:space-between">
-        <div>
-          <div class="badge">Duolingo-style • Gamified</div>
-          <div class="small" style="margin-top:6px">Набирай очки, улучшай combo и проходи станции — готовься как на экзамене.</div>
-        </div>
-        <div>
-          <button class="btn" id="btnOpenTelegram">Открыть в Telegram</button>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">MM</div>
+        <div class="title">
+          <h1>MedMate — подготовка к аккредитации</h1>
+          <p class="small">Интерактивные задания, станции и кейсы — всё готово к демонстрации</p>
         </div>
       </div>
 
-      <div style="margin-top:14px" class="menu-grid">
-        <div class="menu-card" id="menu-choose-course">
-          <h3>Выбрать курс</h3>
-          <div class="muted">3-й или 6-й — материалы адаптируются</div>
-          <div style="margin-top:8px">
-            <button class="btn" onclick="chooseCourse('3')">3-й курс</button>
-            <button class="btn" style="background:linear-gradient(90deg,#06b6d4,#3b82f6);margin-left:8px" onclick="chooseCourse('6')">6-й курс</button>
+      <div class="controls">
+        <div class="xp" id="xpBadge">XP: 0</div>
+        <div class="level" id="levelBadge">Lvl 1</div>
+        <div class="streak" id="streakBadge">Streak: 0</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+          <div style="flex:1">
+            <div class="small">Выбран курс</div>
+            <div style="font-weight:800" id="chosenCourse">—</div>
+          </div>
+          <div>
+            <button class="tab" onclick="openCourseChooser()">Сменить</button>
           </div>
         </div>
 
-        <div class="menu-card" onclick="openSection('theory')">
-          <h3>🧠 Теория</h3>
-          <div class="muted">Вопросы с подсказками и мнемоникой</div>
+        <nav class="nav">
+          <div class="tab active" data-tab="home" onclick="switchTab('home')">🏠 Главное <span class="badge">NEW</span></div>
+          <div class="tab" data-tab="theory" onclick="switchTab('theory')">🧠 Теория</div>
+          <div class="tab" data-tab="practice" onclick="switchTab('practice')">💉 Практика</div>
+          <div class="tab" data-tab="cases" onclick="switchTab('cases')">📝 Кейсы</div>
+          <div class="tab" data-tab="profile" onclick="switchTab('profile')">👤 Профиль</div>
+        </nav>
+
+        <div style="margin-top:12px" class="small">
+          <div style="margin-bottom:6px">Прогресс курса</div>
+          <div class="progress"><i id="globalProgress" style="width:0%"></i></div>
         </div>
 
-        <div class="menu-card" onclick="openSection('practice')">
-          <h3>💉 Практика</h3>
-          <div class="muted">Интерактивные чек-листы станций</div>
+        <div style="margin-top:12px" class="small">
+          <div style="font-weight:700;margin-bottom:6px">Бейджи</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="badge" id="badgeFirst">1st</div>
+            <div class="badge" id="badgeStreak">Streak</div>
+            <div class="badge" id="badgePractice">Practice</div>
+          </div>
         </div>
+      </aside>
 
-        <div class="menu-card" onclick="openSection('cases')">
-          <h3>📝 Кейсы</h3>
-          <div class="muted">Ситуационные задачи — пошагово</div>
-        </div>
+      <!-- MAIN -->
+      <main class="main" id="mainArea">
+        <!-- HERO / HOME -->
+        <section id="tab-home" class="card">
+          <div class="hero">
+            <div class="left">
+              <h2 id="welcomeTitle">Добро пожаловать в MedMate</h2>
+              <p class="small">Сначала выберите курс, затем проходите модули: теория, практика и кейсы. Всё сохранится локально и можно в будущем синхронизировать с сервером.</p>
 
-        <div class="menu-card" onclick="openSection('progress')">
-          <h3>📊 Прогресс</h3>
-          <div class="muted">Сохраняется локально (demo)</div>
-        </div>
+              <div style="margin-top:12px;display:flex;gap:8px">
+                <button class="btn" style="padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent-2),var(--accent)) ;color:white" onclick="openCourseChooser()">Выбрать курс</button>
+                <button class="btn ghost" style="background:transparent;border:1px solid rgba(37,99,235,0.08);" onclick="switchTab('theory')">Перейти в теорию</button>
+              </div>
+            </div>
+            <div class="right">
+              <div style="background:linear-gradient(180deg,#fff,#f8fafc);padding:12px;border-radius:10px;box-shadow:var(--shadow)">
+                <div style="font-weight:800">Твой прогресс</div>
+                <div style="margin-top:8px" class="small">Очки и бейджи — мотивация для ежедневной практики</div>
+                <div style="margin-top:12px"><div class="small">Очки: <span id="points">0</span></div>
+                <div style="margin-top:8px"><div class="small">Combo: <span id="combo">0</span></div></div></div>
+              </div>
+            </div>
+          </div>
 
-        <div class="menu-card" onclick="openSection('about')">
-          <h3>ℹ️ О приложении</h3>
-          <div class="muted">Готово для демонстрации на защите</div>
-        </div>
-      </div>
+          <div class="cards">
+            <div class="card">
+              <h3>Быстрый старт</h3>
+              <div class="small">Пройдите 3 вопроса теории и 1 станцию — получите бонусный бейдж "Starter".</div>
+              <div style="margin-top:12px"><button class="btn" onclick="startQuickRun()">Запустить Quick Run</button></div>
+            </div>
+
+            <div class="card">
+              <h3>Рекомендации</h3>
+              <div class="small">Сфокусируйтесь на практике: станции имеют чек-листы и видеоинструкции.</div>
+            </div>
+
+            <div class="card">
+              <h3>Кейсы</h3>
+              <div class="small">Реалистичные сценарии — выбирай правильно, получай очки.</div>
+              <div style="margin-top:10px"><button class="btn ghost" onclick="switchTab('cases')">Открыть кейсы</button></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- THEORY -->
+        <section id="tab-theory" class="card hide">
+          <div id="theoryArea"></div>
+        </section>
+
+        <!-- PRACTICE -->
+        <section id="tab-practice" class="card hide">
+          <div id="practiceArea"></div>
+        </section>
+
+        <!-- CASES -->
+        <section id="tab-cases" class="card hide">
+          <div id="casesArea"></div>
+        </section>
+
+        <!-- PROFILE -->
+        <section id="tab-profile" class="card hide">
+          <h3>Профиль</h3>
+          <div class="small">Пока профиль локальный — в будущем можно подключить авторизацию и сервер.</div>
+          <div style="margin-top:12px">
+            <div class="small">Имя: <strong id="profileName">Student</strong></div>
+            <div class="small" style="margin-top:8px">Очки: <strong id="profilePoints">0</strong></div>
+            <div style="margin-top:12px"><button class="btn ghost" onclick="resetAll()">Сбросить прогресс</button></div>
+          </div>
+        </section>
+
+      </main>
     </div>
 
-    <div id="appArea" class="hide"></div>
-
-    <footer>MedMate — демонстрационный прототип для подготовки к аккредитации · Сделано аккуратно для защиты</footer>
+    <div class="footer">MedMate — прототип для демонстрации. Видеоинструкции вставляются в раздел Практики.</div>
   </div>
 
-<!-- Data + Script -->
+<!-- ====== Script: вся логика (локально, без внешних файлов) ====== -->
 <script>
-/* ============================
-   Данные: теория, практика, кейсы
-   (встроены для простоты деплоя)
-   ============================ */
-const DATA = {
-  theory: [
-    // 3rd course questions (8)
-    {id:1,course:'3',topic:'Кардиология',question:'Норма частоты сердечных сокращений взрослого человека?',options:['60-100','40-60','100-120','120-140'],answer:'60-100',explanation:'Норма ЧСС — 60–100 уд/мин. Мнемоника: «60–100 — нормальный шаг для взрослого».'},
-    {id:2,course:'3',topic:'Физиология',question:'Орган, ответственный за фильтрацию крови?',options:['Почки','Печень','Сердце','Лёгкие'],answer:'Почки',explanation:'Почки фильтруют плазму, удаляют продукты обмена. Запомнить: «Почки — природный фильтр».'},
-    {id:3,course:'3',topic:'Фармакология',question:'Анальгетик для неотложного обезболивания при инфаркте?',options:['Нитроглицерин','Морфин','Ибупрофен','Парацетамол'],answer:'Морфин',explanation:'В остром инфаркте возможно титрованное введение морфина для купирования сильной боли и снижения преднагрузки.'},
-    {id:4,course:'3',topic:'Пульмонология',question:'Что показывает спирометрия?',options:['Оценку функции дыхания','ЭКГ','Уровень гемоглобина','Рентген грудной клетки'],answer:'Оценку функции дыхания',explanation:'Спирометрия измеряет объём и скорость дыхания — для оценки обструкции или рестрикций.'},
-    {id:5,course:'3',topic:'Инфекция',question:'При подозрении на менингит что обязательно делать в начале?',options:['Люмбальная пункция','КТ головы','Антибиотики эмпирически','Рентген'],answer:'Антибиотики эмпирически',explanation:'При тяжелых проявлениях начинать эмпирическую антибиотикотерапию, затем — диагностика.'},
-    {id:6,course:'3',topic:'Гастроэнтерология',question:'Типичный симптом при остром панкреатите?',options:['Интенсивная боль в эпигастрии','Кашель','Кровавая рвота','Боли в коленях'],answer:'Интенсивная боль в эпигастрии',explanation:'Острая опоясывающая боль в верхней половине живота, часто с иррадиацией в спину.'},
-    {id:7,course:'3',topic:'Неврология',question:'Что такое очаговая неврология?',options:['Нарушение, соответствующее локализации в ЦНС','Общее головокружение','Обморок','Тошнота'],answer:'Нарушение, соответствующее локализации в ЦНС',explanation:'Очаговая симптоматика указывает на локальный патологический процесс.'},
-    {id:8,course:'3',topic:'Общая терапия',question:'Первая помощь при кровотечении из носа?',options:['Наклон головы назад','Прижать крыло носа и наклон вперед','Закопать голову под подушку','Дать жаропонижающее'],answer:'Прижать крыло носа и наклон вперед',explanation:'Прижать переднюю часть носа и наклон вперед; наклон назад — неверно, может привести к аспирации.'},
-
-    // 6th course questions (8)
-    {id:101,course:'6',topic:'Кардиология',question:'Что первично при подозрении на ОИМ?',options:['ЭКГ','Рентген','УЗИ','Копрограмма'],answer:'ЭКГ',explanation:'При острой боли в груди первая диагностика — ЭКГ (сравнить с предыдущими). Быстрая мнемоника: «Боль — ЭКГ».'},
-    {id:102,course:'6',topic:'Реанимация',question:'При фибрилляции желудочков приоритетное действие?',options:['Дефибрилляция','Инфузия антибиотиков','Рентген','Промывание желудка'],answer:'Дефибрилляция',explanation:'Фибрилляция желудочков лечится немедленной дефибрилляцией; запомнить: «VF — shock now».'},
-    {id:103,course:'6',topic:'Интенсивная терапия',question:'Оптимальный позиционирование при дыхательной недостаточности?',options:['Полусидя','На животе у всех','Только лежа','Стоя'],answer:'Полусидя',explanation:'Полусидя облегчает дыхание; для ARDS — на животе (prone) специфично.'},
-    {id:104,course:'6',topic:'Пульмонология',question:'Признак эмфиземы на аускультации?',options:['Пониженный везикулярный шум','Плевральный трение','Голоса бронхиальные','Шум трения перикарда'],answer:'Пониженный везикулярный шум',explanation:'При эмфиземе дыхание заметно ослаблено.'},
-    {id:105,course:'6',topic:'Инфекция',question:'Лечение при сепсисе — первое действие?',options:['Обширная антибиотикотерапия эмпирически','Рентген','Плазмаферез','Физиотерапия'],answer:'Обширная антибиотикотерапия эмпирически',explanation:'При сепсисе — ранняя антибактериальная терапия в первые часы.'},
-    {id:106,course:'6',topic:'Гемодинамика',question:'Что такое MAP (среднее артериальное давление)?',options:['(2*DBP + SBP)/3','(SBP+DBP)/2','Только SBP','Только DBP'],answer:'(2*DBP + SBP)/3',explanation:'Формула для MAP — 1/3 пульсового давления + диастолическое; важно для перфузии органов.'},
-    {id:107,course:'6',topic:'Хирургия',question:'Признак перитонита при пальпации?',options:['Ригидность передней брюшной стенки','Брадикардия','Кровоточивость десен','Кашель'],answer:'Ригидность передней брюшной стенки',explanation:'Ригидность, сопротивление при пальпации — тревожный симптом.'},
-    {id:108,course:'6',topic:'Педиатрия/взрослая практика',question:'Показание к немедленной операции при травме живота?',options:['Подозрение на перфорацию полого органа','Наличие синяков','Только головная боль','Диспепсия'],answer:'Подозрение на перфорацию полого органа',explanation:'Перфорация требует срочной хирургической ревизии.'}
-  ],
-
-  practice: [
-    {station:'СЛР',emojis:['⚠️','🧍','📞','💨','❤️‍🔥'],steps:['Проверить безопасность места','Проверить сознание (потрясти, громко спросить)','Вызвать скорую и попросить дефибриллятор','Открыть дыхательные пути/осмотреть дыхание','Начать компрессии 30:2 и дефибрилляцию при показаниях'],explanation:'Стандарт AHA: безопасность → сознание → дыхание → вызов → СЛР/дефибрилляция.'},
-    {station:'Экстренная помощь',emojis:['🚑','🩺','🧯','🏥'],steps:['Оценка ABC (Airway/Breathing/Circulation)','Контроль кровотечения и шок-менеджмент','Назначение кислорода/усиление вентиляции','Подготовка к транспортировке и мониторинг'],explanation:'Экстренная помощь: первичная стабилизация витальных функций.'},
-    {station:'Физикальное обследование — сердце',emojis:['🫀','🔍'],steps:['Осмотреть и спросить жалобы','Пальпировать верхушечный толчок','Аускультировать клапулы в 4 точках','Оценить постуральные изменения и давление'],explanation:'Физикальное обследование сердца — системный подход: осмотр → пальпация → аускультация.'},
-    {station:'Физикальное обследование — лёгкие',emojis:['🫁','👂'],steps:['Оценка дыхательной частоты и дыхательных движений','Перкуссия легочных полей','Аускультация (шумы, хрипы)','Оценка сатурации и газов крови при необходимости'],explanation:'Аускультация и перкуссия выявляют скопления жидкости, ателектаз или обструкцию.'},
-    {station:'Сбор жалоб и анамнез',emojis:['🗣️','📋'],steps:['Открытый вопрос: “Что беспокоит?”','История болезни: начало, динамика, факторы','Анамнез жизни: прививки, аллергии, хронические болезни','Семейный и социальный анамнез'],explanation:'Анамнез — ключ к постановке диагноза: начни с открытых вопросов.'}
-  ],
-
-  cases: [
-    {id:1,course:'3',case:'Пациент 45 лет, сильная опоясывающая боль в груди, потливость, тошнота.',steps:[
-      {q:'Какие обследования назначаете первым шагом?',options:['ЭКГ','Рентген','КТ','Лабораторные анализы'],answer:['ЭКГ','Лабораторные анализы'],explain:'При боли в груди первыми: ЭКГ и тропонины.'},
-      {q:'ЭКГ показывает подъем ST в V2-V4. Предварительный диагноз?',options:['ОИМ передней стенки','Пневмония','ТЭЛА'],answer:'ОИМ передней стенки',explain:'Подъем ST в передних отведениях — инфаркт передней стенки.'},
-      {q:'Какие первые лечебные мероприятия?',options:['Нитроглицерин','Аспирин','Антибиотики','Обезболивание (морфин)'],answer:['Аспирин','Нитроглицерин','Обезболивание (морфин)'],explain:'ASE: Аспирин, Нитроглицерин по показаниям, морфин для боли.'},
-      {q:'Назначить дополнительные исследования?',options:['Ангиография','КТ грудной клетки','ЭхоКГ','Бакпосев'],answer:['Ангиография','ЭхоКГ'],explain:'Неотложная коронарная ангиография для реперфузии; Эхо для функции.'},
-      {q:'Дифференциальный диагноз (важно исключить):',options:['ТЭЛА','Паник-атака','Перикардит'],answer:['ТЭЛА','Перикардит','Паник-атака'],explain:'Нужно исключить другие причины боли в груди.'},
-      {q:'Что покажут тропонины при инфаркте?',options:['Повышение','Падение','Без изменений'],answer:'Повышение',explain:'Тропонины повышаются при некрозе кардиомиоцитов.'},
-      {q:'Дальнейшая тактика после стабилизации?',options:['Реадмиссия в кардиореанимацию','Отправить домой','Назначить антибиотиотерапию'],answer:'Реадмиссия в кардиореанимацию',explain:'После реперфузии пациент требует мониторинга и дальнейшего наблюдения.'},
-      {q:'Короткая мнемоника для запоминания первых шагов при боли в груди:',options:['ЭКГ → Кровь (тропонины) → ASA','Рентген → КТ → УЗИ'],answer:'ЭКГ → Кровь (тропонины) → ASA',explain:'«ЭКГ — кровь — аспирин» поможет помнить первые шаги.'}
-    ]},
-    {id:2,course:'6',case:'Пациент 68 лет с резкой одышкой, тахикардией, субфебрилитетом.',steps:[
-      {q:'Какие обследования назначаете?',options:['Оценка SAT/газов','ЭКГ','Рентген грудной клетки','КТ ангиография'],answer:['Оценка SAT/газов','ЭКГ','Рентген грудной клетки'],explain:'Сатурация и ЭКГ + рентген — первично. КТ по клиническим показаниям.'},
-      {q:'Результаты: сатурация 85%, на рентгене инфильтраты. Предварительный диагноз?',options:['Пневмония','ОКС','Плеврит'],answer:'Пневмония',explain:'Низкая сатурация и инфильтраты чаще указывают на пневмонию.'},
-      {q:'Лечение на догоспитальном этапе?',options:['Кислород','Антибиотики эмпирически','Интубация','Физиотерапия'],answer:['Кислород','Антибиотики эмпирически'],explain:'Окислород и эмпирическая антибиотикотерапия при подозрении на пневмонию и дыхательную недостаточность.'},
-      {q:'Нужны ли дополнительные исследования?',options:['Бактериологический посев','КТ грудной клетки','Эхо сердца'],answer:['Бактериологический посев','КТ (по необходимости)'],explain:'Бакпосев для уточнения возбудителя; КТ при неясной картине.'},
-      {q:'Дифференциальные варианты:',options:['Хроническая обструктивная болезнь','Застойная сердечная недостаточность','Пневмония'],answer:['ХОБЛ','Застойная СН','Пневмония'],explain:'Важно отличать кардиогенную и пневмоническую причину.'},
-      {q:'Короткая мнемоника:',options:['SAT→Рентген→Антибиотик','ЭКГ→КТ→Плазма'],answer:'SAT→Рентген→Антибиотик',explain:'Порядок: оценка, визуализация, терапия.'}
-    ]},
-    {id:3,course:'6',case:'Пациент 30 лет, обморок после сильной боли в груди, потеря сознания.',steps:[
-      {q:'Первое действие при найденном без сознания?',options:['Проверить сознание/дыхание','Сделать КТ','Дать антибиотики','Попросить документы'],answer:'Проверить сознание/дыхание',explain:'Алгоритм: безопасность → проверка сознания → вызвать помощь.'},
-      {q:'Пациент не дышит, нет пульса. Что дальше?',options:['Начать СЛР','Дать обезболивающее','Принять душ','Дать антибиотик'],answer:'Начать СЛР',explain:'Неотложная реанимация — немедленное начало СЛР.'},
-      {q:'После 2 минут СЛР ритм с фибрилляцией желудочков — что делать?',options:['Дефибрилляция','Рентген','УЗИ','Промывание'],answer:'Дефибрилляция',explain:'Дефибрилляция при фибрилляции/VT без пульса.'},
-      {q:'Какие медикаменты вводятся при реанимации?',options:['Адреналин','Аспирин','Антибиотики','Инсулин'],answer:'Адреналин',explain:'Адреналин вводится в ходе реанимации, улучшает коронарную перфузию.'},
-      {q:'Дальнейшие шаги после ROSC?',options:['Мониторинг, О2, ЭКГ, коронарная реваскуляризация при показаниях','Отправить домой','Назначить только антибиотики'],answer:'Мониторинг, О2, ЭКГ, коронарная реваскуляризация при показаниях',explain:'После восстановления кровообращения нужен интенсивный мониторинг и план дальнейшей терапии.'}
-    ]}
-  ]
-};
-
-/* ============================
-   UI state
-   ============================ */
+/* -------------------------
+   State + Demo Data
+   ------------------------- */
+const STORAGE_KEY = 'medmate_v2_state';
 let state = {
   course: null,
-  mode: null, // 'theory','practice','cases'
-  theoryIndex:0,
-  points:0,
-  combo:0,
-  currentCase:{}, currentCaseStep:0
+  points: 0,
+  xp: 0,
+  level: 1,
+  streak: 0,
+  combo: 0,
+  theoryIndex: 0,
+  completedStations: {},
+  badges: {}
+};
+/* demo content: theory / practice / cases (short sample sets) */
+const CONTENT = {
+  theory: {
+    '3': [
+      {id:1, topic:'Кардиология', q:'Норма ЧСС взрослого?', options:['60-100','40-60','100-120','120-140'], a:'60-100', explain:'Норма 60–100 уд/мин. Мнемоника: «60–100 — нормальный шаг».'},
+      {id:2, topic:'Физиология', q:'Орган фильтрации крови?', options:['Почки','Печень','Сердце','Лёгкие'], a:'Почки', explain:'Почки удаляют продукты обмена.'},
+      {id:3, topic:'Пульмонология', q:'Спирометрия измеряет?', options:['Функцию дыхания','ЭКГ','УЗИ','Термо'], a:'Функцию дыхания', explain:'Спирометрия — объём/скорость дыхания.'}
+    ],
+    '6': [
+      {id:1, topic:'Реанимация', q:'При VF первое действие?', options:['Дефибрилляция','Антибиотики','Рентген','УЗИ'], a:'Дефибрилляция', explain:'VF — шок (дефибрилляция) первично.'},
+      {id:2, topic:'Кардиология', q:'Первая диагностика при ОИМ?', options:['ЭКГ','Рентген','УЗИ','КТ'], a:'ЭКГ', explain:'ЭКГ — первичная диагностика при боли в груди.'},
+      {id:3, topic:'Инфекция', q:'При сепсисе важнее всего?', options:['Ранняя антибактериальная терапия','Физиотерапия','Диета','Массаж'], a:'Ранняя антибактериальная терапия', explain:'Ранняя антибиотикотерапия снижает смертность.'}
+    ]
+  },
+
+  practice: [
+    // station format includes id, title, short desc, steps[], video placeholder (url null)
+    {id:'slr', title:'Станция: СЛР', short:'Проверка алгоритма и действия по стандарту', steps:[
+      'Проверить безопасность места',
+      'Оценить сознание и дыхание',
+      'Вызвать скорую и позвать дефибриллятор',
+      'Начать компрессии 30:2 и при необходимости дефибрилляцию'
+    ], video:null, video_note:'Здесь будет короткое видео демонстрации СЛР (2–3 минуты).'},
+    {id:'exam', title:'Физикальное обследование (сердце)', short:'Аускультация, пальпация и осмотр', steps:[
+      'Осмотреть пациента',
+      'Пальпация верхушечного толчка',
+      'Аускультация в стандартных точках',
+      'Записать найденные патологические шумы'
+    ], video:null, video_note:'Загрузи тут видео аускультации и пояснение к нормам.'}
+  ],
+
+  cases: {
+    '3': [
+      {id:'c1', title:'Кейс: Боль в груди (45 лет)', steps:[
+        {q:'Первое обследование?', opts:['ЭКГ','Рентген','КТ','УЗИ'], a:['ЭКГ','Лаб. анализы'], explain:'ЭКГ и тропонины — первичные.'},
+        {q:'Предварительный диагноз при подъёме ST?', opts:['ОИМ','Пневмония','Паника'], a:'ОИМ', explain:'Подъём ST — инфаркт.'}
+      ]}
+    ],
+    '6': [
+      {id:'c1', title:'Кейс: Одышка у пожилого', steps:[
+        {q:'Первое действие?', opts:['Оценка SAT/газов','Рентген','КТ','ЭКГ'], a:['Оценка SAT/газов','Рентген'], explain:'SAT и рентген первично.'}
+      ]}
+    ]
+  }
 };
 
-/* load saved state */
-try{
-  const saved = JSON.parse(localStorage.getItem('medmate_state')||'null');
-  if(saved) state = {...state,...saved};
-} catch(e){console.warn(e)}
+/* -------------------------
+   Helpers: storage + UI updates
+   ------------------------- */
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); updateUI();}
+function loadState(){ try{ const s = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); if(s) state = {...state, ...s}; }catch(e){} updateUI(); }
+function addPoints(n){ state.points += n; state.xp += n; if(state.xp >= state.level*50){ state.xp = 0; state.level++; } state.combo = (state.combo||0)+1; if(state.combo>2) state.points += 2; saveState(); showToast(`+${n} очков`); }
+function resetCombo(){ state.combo = 0; saveState(); }
+function showToast(txt){ const t = document.createElement('div'); t.innerText = txt; t.style.position='fixed'; t.style.right='18px'; t.style.bottom='18px'; t.style.background='linear-gradient(90deg,#111827,#111827)'; t.style.color='white'; t.style.padding='10px 14px'; t.style.borderRadius='10px'; t.style.zIndex=9999; document.body.appendChild(t); setTimeout(()=>{t.style.transition='opacity .6s';t.style.opacity='0';setTimeout(()=>t.remove(),600)},1800); }
+function showModal(title, html){ const modal = document.createElement('div'); modal.style.position='fixed'; modal.style.left=0; modal.style.top=0; modal.style.width='100%'; modal.style.height='100%'; modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center'; modal.style.background='rgba(2,6,23,0.5)'; modal.style.zIndex=99999; modal.innerHTML = `<div style="width:95%;max-width:760px;background:white;padding:18px;border-radius:12px;box-shadow:var(--shadow)"><h3>${title}</h3><div style="margin-top:8px">${html}</div><div style="margin-top:14px;text-align:right"><button class="btn" onclick="document.body.removeChild(this.closest('div').parentNode)">Закрыть</button></div></div>`; document.body.appendChild(modal); }
 
-/* helpers */
-function saveState(){ localStorage.setItem('medmate_state', JSON.stringify({course:state.course, theoryIndex:state.theoryIndex, points:state.points, combo:state.combo})); }
-function chooseCourse(c){
-  state.course = c; state.theoryIndex = 0; state.points = 0; state.combo=0; saveState();
-  openSection('theory');
+/* -------------------------
+   UI initialization + tabs
+   ------------------------- */
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active', el.dataset.tab===tab));
+  document.querySelectorAll('#mainArea > section').forEach(s=>s.classList.add('hide'));
+  const el = document.getElementById('tab-'+tab);
+  if(el) el.classList.remove('hide');
+  if(tab==='theory') renderTheory();
+  if(tab==='practice') renderPractice();
+  if(tab==='cases') renderCases();
+  if(tab==='profile') renderProfile();
 }
-function openSection(s){
-  state.mode = s;
-  const area = document.getElementById('appArea');
-  area.classList.remove('hide');
-  document.getElementById('mainMenu').classList.add('hide');
-  area.innerHTML = '';
-  if(s==='theory') renderTheory(area);
-  if(s==='practice') renderPractice(area);
-  if(s==='cases') renderCases(area);
-  if(s==='progress') renderProgress(area);
-  if(s==='about') renderAbout(area);
+function updateUI(){
+  document.getElementById('chosenCourse').innerText = state.course ? (state.course+' курс') : '—';
+  document.getElementById('points').innerText = state.points;
+  document.getElementById('xpBadge').innerText = `XP: ${state.xp}`;
+  document.getElementById('levelBadge').innerText = `Lvl ${state.level}`;
+  document.getElementById('streakBadge').innerText = `Streak: ${state.streak}`;
+  document.getElementById('profilePoints').innerText = state.points;
+  document.getElementById('combo').innerText = state.combo||0;
+  // progress percentage (example: based on theoryIndex vs total)
+  const total = (state.course ? CONTENT.theory[state.course].length : 1);
+  const pct = state.theoryIndex ? Math.round((state.theoryIndex/total)*100) : 0;
+  document.getElementById('globalProgress').style.width = pct + '%';
+  // badges visual
+  document.getElementById('badgeFirst').innerText = state.badges.first ? '✓ First' : 'First';
+  document.getElementById('badgeStreak').innerText = state.badges.streak ? '✓ Streak' : 'Streak';
+  document.getElementById('badgePractice').innerText = state.badges.practice ? '✓ Practice' : 'Practice';
 }
 
-/* Return to menu */
-function backToMenu(){
-  document.getElementById('appArea').classList.add('hide');
-  document.getElementById('mainMenu').classList.remove('hide');
+/* -------------------------
+   Course chooser (forced on first open)
+   ------------------------- */
+function openCourseChooser(){
+  const html = `<div style="display:flex;gap:12px;flex-wrap:wrap"><div style="flex:1"><h3>Выберите курс</h3><p class="small">Курс определяет набор вопросов и кейсов.</p><div style="margin-top:10px"><button class="btn" onclick="setCourse('3')">3-й курс</button> <button class="btn" style="margin-left:8px;background:linear-gradient(90deg,#06b6d4,#3b82f6)" onclick="setCourse('6')">6-й курс</button></div></div></div>`;
+  showModal('Выбор курса', html);
+}
+function setCourse(c){
+  // remove modal
+  const modal = document.querySelector('body > div[style*="position:fixed"]');
+  if(modal) document.body.removeChild(modal);
+  state.course = c; state.theoryIndex = 0; state.points = state.points||0; saveState();
+  showToast(`Курс ${c} выбран`);
+  updateUI();
+  switchTab('theory');
 }
 
-/* Render: theory */
-function renderTheory(area){
-  if(!state.course){ area.innerHTML = `<div class="card"><h3>Выберите курс сначала</h3><div class="small">Вернитесь в меню</div><div style="margin-top:12px"><button class="btn" onclick="backToMenu()">↩️ Назад</button></div></div>`; return; }
-  const questions = DATA.theory.filter(q=>q.course===state.course);
-  if(state.theoryIndex >= questions.length){
-    area.innerHTML = `<div class="card center"><h2>🎉 Отлично! Вы прошли теорию для курса ${state.course}-го</h2><p class="small">Очки: <span class="score">${state.points}</span></p><div style="margin-top:12px"><button class="btn" onclick="state.theoryIndex=0;state.points=0;state.combo=0;saveState();renderTheory(document.getElementById('appArea'))">Пройти заново</button><button class="btn ghost" style="margin-left:8px" onclick="openSection('practice')">Перейти к практике</button></div></div>`; return;
+/* -------------------------
+   Theory: render + interactions
+   ------------------------- */
+function renderTheory(){
+  const area = document.getElementById('theoryArea');
+  if(!state.course){ area.innerHTML = `<div class="card"><h3>Выберите курс</h3><div class="small">Сначала выберите курс</div><div style="margin-top:12px"><button class="btn" onclick="openCourseChooser()">Выбрать курс</button></div></div>`; return; }
+  const list = CONTENT.theory[state.course];
+  if(state.theoryIndex >= list.length){
+    area.innerHTML = `<div class="card center"><h2>🎉 Теория для курса ${state.course} пройдена</h2><p class="small">Очки: ${state.points}</p><div style="margin-top:12px"><button class="btn" onclick="state.theoryIndex=0;saveState();renderTheory()">Пройти заново</button> <button class="btn ghost" onclick="switchTab('practice')">Перейти к практике</button></div></div>`;
+    return;
   }
-  const q = questions[state.theoryIndex];
-  area.innerHTML = `
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div class="small">Курс ${state.course} • Тема: ${q.topic}</div>
-          <div class="progress" style="margin-top:8px"><i style="width:${Math.round((state.theoryIndex/questions.length)*100)}%"></i></div>
-        </div>
-        <div class="center"><div class="small">Очки</div><div class="score">${state.points}</div></div>
-      </div>
-
-      <div style="margin-top:14px">
-        <div class="question">${q.question}</div>
-        <div class="options" id="options"></div>
-        <div style="margin-top:12px"><button class="btn ghost" onclick="backToMenu()">🏠 В меню</button></div>
-      </div>
-    </div>
-  `;
-  const optBox = document.getElementById('options');
-  q.options.forEach(opt=>{
-    const div = document.createElement('div'); div.className='option'; div.innerText=opt;
-    div.onclick = ()=> handleTheoryAnswer(q,opt,div);
-    optBox.appendChild(div);
-  });
+  const item = list[state.theoryIndex];
+  let html = `<div class="card"><div class="small">Тема: ${item.topic}</div><div style="margin-top:12px"><div class="question">${item.q}</div><div class="options">`;
+  item.options.forEach(opt=> html += `<div class="option" onclick="answerTheory('${escapeHtml(item.a)}','${escapeHtml(opt)}', this)">${opt}</div>`);
+  html += `</div><div style="margin-top:12px"><div class="small">Прогресс: ${state.theoryIndex}/${list.length}</div><div style="margin-top:8px"><button class="btn ghost" onclick="switchTab('home')">🏠 В меню</button></div></div></div></div>`;
+  area.innerHTML = html;
 }
-function handleTheoryAnswer(q,choice,el){
-  const correct = (Array.isArray(q.answer) ? q.answer.includes(choice) : q.answer === choice);
-  if(correct){
-    // success animation
-    el.style.borderColor='rgba(16,185,129,0.25)'; el.style.boxShadow='0 10px 30px rgba(16,185,129,0.12)';
-    // points + combo
-    state.combo = (state.combo||0)+1;
-    let bonus = state.combo>2 ? 5 : 0;
-    state.points += 10 + bonus;
-    showToast(`✅ Правильно! +${10+bonus} очков (${state.combo} в серии)`);
+function answerTheory(correct, choice, el){
+  // correct may be array or string
+  const list = CONTENT.theory[state.course];
+  const item = list[state.theoryIndex];
+  const isCorrect = Array.isArray(item.a) ? item.a.includes(choice) : (item.a === choice);
+  if(isCorrect){
+    el.classList.add('correct');
+    addPoints(10);
+    state.theoryIndex++;
+    saveState();
+    setTimeout(()=> renderTheory(), 700);
   } else {
-    // show explanation & reset combo
-    state.combo = 0;
-    showModal('Неверно', `<div style="font-weight:700;color:${'var(--bad)'}">Правильный ответ: <span class="right">${Array.isArray(q.answer)?q.answer.join(', '):q.answer}</span></div><div class="explain">${q.explanation}</div>`);
+    el.classList.add('wrong');
+    resetCombo();
+    // show explanation
+    showModal('Неверно', `<div style="font-weight:700">Правильный ответ: <span style="color:var(--good)">${Array.isArray(item.a)?item.a.join(', '):item.a}</span></div><div class="explain" style="margin-top:8px">${item.explain}</div>`);
+    // progress on wrong still moves forward after modal closed? keep index to let user retry - choose to move forward anyway
+    state.theoryIndex++;
+    saveState();
+    setTimeout(()=> renderTheory(), 900);
   }
-  state.theoryIndex++; saveState();
-  setTimeout(()=> renderTheory(document.getElementById('appArea')), 700);
 }
 
-/* Practice */
-function renderPractice(area){
-  let html = `<div class="card"><h3>Практические станции</h3><div class="small">Проходи чек-листы, отмечай шаги — тренируйся интерактивно</div>`;
-  DATA.practice.forEach((st,i)=>{
-    html += `<div style="margin-top:12px" class="card">
+/* -------------------------
+   Practice: improved station UI + placeholder for video
+   ------------------------- */
+function renderPractice(){
+  const area = document.getElementById('practiceArea');
+  let html = `<div class="card"><h3>Практические станции</h3><div class="small">Каждая станция имеет чек-лист. В блоке справа — место для видео / инструкции (вставь URL позже).</div></div>`;
+  CONTENT.practice.forEach(st=>{
+    html += `<div class="card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><strong>${st.station}</strong><div class="small">${st.explanation}</div></div>
-        <div><button class="btn" onclick="openStation(${i})">Пройти станцию</button></div>
+        <div><h3 style="margin:0">${st.title}</h3><div class="small" style="margin-top:6px">${st.short}</div></div>
+        <div><button class="btn" onclick="openStation('${st.id}')">Открыть станцию</button></div>
       </div>
     </div>`;
   });
-  html += `<div style="margin-top:12px"><button class="btn ghost" onclick="backToMenu()">🏠 В меню</button></div></div>`;
   area.innerHTML = html;
-}
-function openStation(idx){
-  const st = DATA.practice[idx];
-  const area = document.getElementById('appArea');
-  let stepsHtml = `<h3>${st.station}</h3><div class="small">${st.explanation}</div><ul class="station-steps">`;
-  st.steps.forEach((s,i)=> stepsHtml += `<li id="step-${idx}-${i}"><div class="emoji">${st.emojis[i]||'🔹'}</div><div><div style="font-weight:700">${s}</div><div class="small">Нажмите галочку после выполнения</div></div><div style="margin-left:auto"><button class="btn" onclick="markStep(${idx},${i})">✔️ Выполнено</button></div></li>`);
-  stepsHtml += `</ul><div style="margin-top:12px"><button class="btn ghost" onclick="renderPractice(document.getElementById('appArea'))">◀️ Назад к станциям</button></div>`;
-  area.innerHTML = `<div class="card">${stepsHtml}</div>`;
-}
-function markStep(stIdx, stepIdx){
-  const el = document.getElementById(`step-${stIdx}-${stepIdx}`);
-  if(!el.classList.contains('done')){
-    el.classList.add('done');
-    // award small points
-    state.points += 5; saveState();
-    showToast('✔️ Шаг отмечен — +5 очков');
-  } else {
-    showToast('Этот шаг уже пройден');
-  }
 }
 
-/* Cases */
-function renderCases(area){
-  if(!state.course){ area.innerHTML = `<div class="card"><h3>Выберите курс сначала</h3><div class="small">Вернитесь в меню</div><div style="margin-top:12px"><button class="btn" onclick="backToMenu()">↩️ Назад</button></div></div>`; return; }
-  const cases = DATA.cases.filter(c=>c.course===state.course);
-  let html = `<div class="card"><h3>Ситуационные кейсы</h3><div class="small">Кейс — это мини-квест: выбирай действия, получай обратную связь</div>`;
-  cases.forEach((c,i)=> html += `<div style="margin-top:12px" class="card"><strong>Кейс ${i+1}:</strong> ${c.case}<div style="margin-top:8px"><button class="btn" onclick="startCase(${i})">Пройти кейс</button></div></div>`);
-  html += `<div style="margin-top:12px"><button class="btn ghost" onclick="backToMenu()">🏠 В меню</button></div></div>`;
+function openStation(id){
+  const st = CONTENT.practice.find(s=>s.id===id);
+  const area = document.getElementById('practiceArea');
+  // build left (steps) and right (video placeholder)
+  let left = `<div class="station-left"><h3>${st.title}</h3><div class="small" style="margin-bottom:10px">${st.short}</div><ul class="steps">`;
+  st.steps.forEach((s,i)=> {
+    const done = (state.completedStations[id] || []).includes(i);
+    left += `<li id="step-${id}-${i}" class="${done?'done':''}"><div style="font-weight:700">${s}</div><div style="margin-left:auto"><button class="btn" onclick="toggleStep('${id}',${i})">${done?'✔️':'Отметить'}</button></div></li>`;
+  });
+  left += `</ul><div style="margin-top:10px"><button class="btn ghost" onclick="renderPractice()">◀️ Назад</button></div></div>`;
+
+  let right = `<div class="station-right">
+    <div class="video-placeholder" id="video-${id}">
+      <div>
+        <div style="font-weight:800">Видео / инструкция</div>
+        <div class="small" style="margin-top:6px">${st.video_note}</div>
+        <div style="margin-top:8px"><button class="btn ghost" onclick="editVideo('${id}')">Вставить видео</button></div>
+      </div>
+    </div>
+    <div style="margin-top:12px"><div class="small">Баллы за полное прохождение станции: <strong>+20</strong></div></div>
+  </div>`;
+
+  area.innerHTML = `<div class="card station">${left}${right}</div>`;
+}
+
+function toggleStep(stationId, idx){
+  state.completedStations[stationId] = state.completedStations[stationId] || [];
+  const arr = state.completedStations[stationId];
+  if(arr.includes(idx)){
+    // already done: remove
+    state.completedStations[stationId] = arr.filter(x=>x!==idx);
+    document.getElementById(`step-${stationId}-${idx}`).classList.remove('done');
+    showToast('Шаг снят');
+  } else {
+    arr.push(idx);
+    document.getElementById(`step-${stationId}-${idx}`).classList.add('done');
+    addPoints(5);
+    showToast('+5 очков');
+  }
+  // if all steps done -> award completion bonus and badge
+  const total = CONTENT.practice.find(s=>s.id===stationId).steps.length;
+  if(state.completedStations[stationId].length === total && !state.badges[stationId]){
+    state.badges[stationId] = true;
+    addPoints(20);
+    showModal('Станция пройдена', `<div>Вы прошли <strong>${stationId}</strong> — бонус +20 очков! Место для видео сохранено справа.</div>`);
+  }
+  saveState();
+}
+
+/* allow admin to insert video URL into placeholder (future) */
+function editVideo(id){
+  const url = prompt('Вставь URL видео (mp4 или YouTube embed) для этой станции (пример: https://.../cpr.mp4).');
+  if(!url) return;
+  // render video element into placeholder
+  const ph = document.getElementById(`video-${id}`);
+  ph.innerHTML = `<video controls width="100%" style="border-radius:8px"><source src="${url}">Your browser does not support video.</video><div style="margin-top:8px" class="small">Видео вставлено (локально/хостинг).</div>`;
+  // optionally save into state to persist
+  state.videoLinks = state.videoLinks || {}; state.videoLinks[id] = url; saveState();
+  showToast('Видео вставлено');
+}
+
+/* -------------------------
+   Cases (interactive mini-cases)
+   ------------------------- */
+function renderCases(){
+  const area = document.getElementById('casesArea');
+  if(!state.course){ area.innerHTML = `<div class="card"><h3>Выберите курс</h3><div class="small">Сначала выберите курс</div><div style="margin-top:12px"><button class="btn" onclick="openCourseChooser()">Выбрать курс</button></div></div>`; return; }
+  const list = CONTENT.cases[state.course];
+  let html = `<div class="card"><h3>Кейсы (курс ${state.course})</h3><div class="small">Выбирай кейс и проходи шаги, получай очки за правильные решения.</div></div>`;
+  list.forEach((c,i)=> html += `<div class="card" style="margin-top:12px"><div style="display:flex;justify-content:space-between"><div><strong>${c.title}</strong><div class="small">${c.steps.length} шаг(а)</div></div><div><button class="btn" onclick="startCase('${state.course}',${i})">Пройти кейс</button></div></div></div>`);
   area.innerHTML = html;
 }
-function startCase(idx){
-  const cases = DATA.cases.filter(c=>c.course===state.course);
-  state.currentCase = cases[idx];
-  state.currentCaseStep = 0;
+function startCase(course, idx){
+  state.currentCase = {course, idx, step:0, score:0};
   renderCaseStep();
 }
 function renderCaseStep(){
-  const area = document.getElementById('appArea');
-  const c = state.currentCase;
-  const step = c.steps[state.currentCaseStep];
-  let html = `<div class="card"><div class="small">Кейс: ${c.case}</div><div style="margin-top:10px"><div class="case-step"><div class="question">${step.q}</div>`;
-  step.options.forEach(opt => html += `<div style="margin-top:8px"><button class="option" onclick="answerCase('${opt}')">${opt}</button></div>`);
-  html += `</div></div><div style="margin-top:12px"><button class="btn ghost" onclick="renderCases(document.getElementById('appArea'))">◀️ Назад к кейсам</button></div></div>`;
+  const c = CONTENT.cases[state.currentCase.course][state.currentCase.idx];
+  const s = c.steps[state.currentCase.step];
+  const area = document.getElementById('casesArea');
+  let html = `<div class="card"><h3>${c.title}</h3><div class="case-step"><div style="font-weight:800">${s.q}</div><div class="case-opts">`;
+  s.opts.forEach(o=> html += `<button class="option" style="margin-right:8px;margin-top:8px" onclick="answerCase('${escapeHtml(o)}')">${o}</button>`);
+  html += `</div></div><div style="margin-top:12px"><button class="btn ghost" onclick="renderCases()">◀️ Назад</button></div></div>`;
   area.innerHTML = html;
 }
 function answerCase(choice){
-  const c = state.currentCase;
-  const step = c.steps[state.currentCaseStep];
-  const correct = (Array.isArray(step.answer) ? step.answer.includes(choice) : step.answer === choice);
+  const c = CONTENT.cases[state.currentCase.course][state.currentCase.idx];
+  const s = c.steps[state.currentCase.step];
+  const correct = Array.isArray(s.a) ? s.a.includes(choice) : s.a === choice;
   if(correct){
-    state.points += 12; state.combo = (state.combo||0)+1;
-    showToast(`✅ Правильно! +12 очков. Combo: ${state.combo}`);
+    addPoints(12);
+    state.currentCase.score += 12;
+    showToast('+12 очков — верно');
   } else {
-    state.combo = 0;
-    showModal('Неверно', `<div class="explain">Правильный ответ: <strong>${Array.isArray(step.answer)?step.answer.join(', '):step.answer}</strong><br/><br/>${step.explain}</div>`);
+    resetCombo();
+    showModal('Неверно', `<div>Правильный ответ: <strong>${Array.isArray(s.a)?s.a.join(', '):s.a}</strong><div class="explain" style="margin-top:10px">${s.explain}</div></div>`);
   }
-  state.currentCaseStep++;
+  state.currentCase.step++;
+  if(state.currentCase.step >= c.steps.length){
+    showModal('Кейс завершён', `Вы заработали ${state.currentCase.score} очков в этом кейсе.`);
+    state.currentCase = null;
+    renderCases();
+  } else {
+    setTimeout(renderCaseStep, 600);
+  }
   saveState();
-  if(state.currentCaseStep >= c.steps.length){
-    showModal('Кейс завершён', `Кейс пройден. Очки: ${state.points}`);
-    renderCases(document.getElementById('appArea'));
-  } else {
-    setTimeout(renderCaseStep,600);
-  }
 }
 
-/* Progress */
-function renderProgress(area){
-  const totalTheory3 = DATA.theory.filter(q=>q.course==='3').length;
-  const totalTheory6 = DATA.theory.filter(q=>q.course==='6').length;
-  area.innerHTML = `<div class="card"><h3>Прогресс</h3>
-    <div class="small">Выбран курс: <strong>${state.course||'—'}</strong></div>
-    <div style="margin-top:10px">Очки: <span class="score">${state.points}</span></div>
-    <div style="margin-top:10px" class="small">Пройдено вопросов (3 курс): ${state.course==='3'?state.theoryIndex:0} / ${totalTheory3}</div>
-    <div style="margin-top:10px" class="small">Пройдено вопросов (6 курс): ${state.course==='6'?state.theoryIndex:0} / ${totalTheory6}</div>
-    <div style="margin-top:12px"><button class="btn ghost" onclick="resetProgress()">Сбросить прогресс</button></div>
-    <div style="margin-top:12px"><button class="btn" onclick="backToMenu()">🏠 В меню</button></div></div>`;
+/* -------------------------
+   Profile + reset
+   ------------------------- */
+function renderProfile(){
+  document.getElementById('profileName').innerText = 'Student';
+  document.getElementById('profilePoints').innerText = state.points;
 }
-function resetProgress(){
-  if(confirm('Сбросить локальный прогресс?')){state.theoryIndex=0;state.points=0;state.combo=0;saveState();renderProgress(document.getElementById('appArea'))}
+function resetAll(){
+  if(!confirm('Сбросить весь локальный прогресс?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
 }
 
-/* About */
-function renderAbout(area){
-  area.innerHTML = `<div class="card"><h3>О MedMate</h3>
-    <p class="small">MedMate — демонстрационный мини-приложение для подготовки к аккредитации: теория, практика и кейсы. Интерфейс — геймифицирован, с очками и прогрессом — удобно показывать на защите.</p>
-    <ul class="small">
-      <li>Автор: Demo</li>
-      <li>Сохранение прогресса: localStorage</li>
-      <li>Можно расширить: добавить больше кейсов, серверную синхронизацию, рейтинг</li>
-    </ul>
-    <div style="margin-top:12px"><button class="btn" onclick="backToMenu()">🏠 В меню</button></div>
-  </div>`;
+/* -------------------------
+   Quick run: 3 theory + 1 station (demo)
+   ------------------------- */
+function startQuickRun(){
+  if(!state.course){ openCourseChooser(); return; }
+  // set theoryIndex to 0 and go to first 3 questions quickly
+  state.theoryIndex = 0; saveState();
+  showModal('Quick Run', `<div>Пройдите 3 вопроса теории сразу — получите бонус.</div><div style="margin-top:12px"><button class="btn" onclick="document.body.removeChild(this.closest('div').parentNode);switchTab('theory')">Начать</button></div>`);
 }
 
-/* small UI helpers */
-function showToast(text){
-  const t = document.createElement('div'); t.innerText=text;
-  t.style.position='fixed'; t.style.right='18px'; t.style.bottom='18px'; t.style.background='rgba(2,6,23,0.9)'; t.style.color='white'; t.style.padding='10px 14px'; t.style.borderRadius='10px'; t.style.zIndex=9999; t.style.boxShadow='0 8px 30px rgba(2,6,23,0.2)';
-  document.body.appendChild(t); setTimeout(()=>{t.style.transition='opacity .6s';t.style.opacity='0';setTimeout(()=>t.remove(),600)},2000);
-}
-function showModal(title,html){
-  const modal = document.createElement('div'); modal.style.position='fixed'; modal.style.left=0; modal.style.top=0; modal.style.width='100%'; modal.style.height='100%'; modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center'; modal.style.background='rgba(2,6,23,0.5)'; modal.style.zIndex=99999;
-  modal.innerHTML = `<div style="max-width:720px;background:white;padding:18px;border-radius:12px;box-shadow:0 20px 60px rgba(2,6,23,0.2)"><h3>${title}</h3><div style="margin-top:8px">${html}</div><div style="margin-top:12px;text-align:right"><button class="btn" id="closeModal">Закрыть</button></div></div>`;
-  document.body.appendChild(modal); document.getElementById('closeModal').onclick = ()=> modal.remove();
-}
+/* -------------------------
+   utils
+   ------------------------- */
+function escapeHtml(s){ return (''+s).replace(/"/g,'&quot;').replace(/'/g,"&#39;"); }
 
-/* Telegram WebApp hook (optional) */
-document.getElementById('btnOpenTelegram').onclick = ()=>{
-  if(window.Telegram && Telegram.WebApp){
-    // open as web app inside Telegram (this call is optional; button inside telegram suffices)
-    Telegram.WebApp.expand();
-    showToast('Откройте приложение через кнопку бота в чате, если хотите интеграцию');
-  } else {
-    showToast('Открыто в браузере — для Telegram нажмите кнопку в боте.');
-  }
-};
-
-/* Initialize: if course was previously chosen, show menu with badge */
-(function init(){
-  if(state.course){
-    // show small hint
-    const el = document.querySelector('.badge');
-    if(el) el.innerText = `Курс ${state.course} • очки: ${state.points}`;
-  }
-})();
+/* init */
+loadState();
+// If no course chosen, force chooser after short delay
+if(!state.course){ setTimeout(()=>openCourseChooser(), 600); }
+switchTab('home');
+updateUI();
 </script>
 </body>
 </html>
