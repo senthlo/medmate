@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MedMate — Подготовка к аккредитации</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +13,10 @@
 
 <body>
     <div class="toast-container" id="toastContainer"></div>
+    <div class="mobile-nav-toggle" id="mobileNavToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+    
     <div class="container">
         <header class="header">
             <div class="brand">
@@ -29,9 +33,9 @@
                         <option value="doctor">Врач (6 курс)</option>
                     </select>
                 </div>
-                <span class="xp"><i class="fas fa-star"></i> <span id="xpValue">2500</span> XP</span>
-                <span class="level"><i class="fas fa-level-up-alt"></i> Уровень <span id="levelValue">12</span></span>
-                <button class="button profile-btn"><i class="fas fa-user-circle"></i> Профиль</button>
+                <span class="xp"><i class="fas fa-star"></i> <span id="xpValue">0</span> XP</span>
+                <span class="level"><i class="fas fa-level-up-alt"></i> Уровень <span id="levelValue">1</span></span>
+                <button class="button profile-btn" id="profileBtn"><i class="fas fa-user-circle"></i> Профиль</button>
             </div>
         </header>
 
@@ -53,22 +57,22 @@
         </div>
 
         <div class="grid">
-            <aside class="sidebar">
+            <aside class="sidebar" id="sidebar">
                 <nav class="nav">
                     <div class="tab active" data-tab="dashboard">
                         <i class="fas fa-home"></i> Главная
                     </div>
                     <div class="tab" data-tab="theory">
-                        <i class="fas fa-book-medical"></i> Тесты <span class="badge" id="theoryCount">1800</span>
+                        <i class="fas fa-book-medical"></i> Тесты <span class="badge" id="theoryCount">0</span>
                     </div>
                     <div class="tab" data-tab="stations">
                         <i class="fas fa-diagnoses"></i> Станции <span class="badge">5</span>
                     </div>
                     <div class="tab" data-tab="tasks">
-                        <i class="fas fa-tasks"></i> Задачи <span class="badge" id="tasksCount">150</span>
+                        <i class="fas fa-tasks"></i> Задачи <span class="badge" id="tasksCount">0</span>
                     </div>
-                    <div class="tab" data-tab="simulator">
-                        <i class="fas fa-vr-cardboard"></i> Тренажёр
+                    <div class="tab" data-tab="progress">
+                        <i class="fas fa-chart-line"></i> Прогресс
                     </div>
                     <div class="tab" data-tab="materials">
                         <i class="fas fa-file-alt"></i> Материалы
@@ -79,15 +83,15 @@
                     <h4>Быстрая статистика</h4>
                     <div class="stat-item">
                         <span>Пройдено тестов:</span>
-                        <strong>842/1800</strong>
+                        <strong id="statsTheories">0/0</strong>
                     </div>
                     <div class="stat-item">
                         <span>Отработано станций:</span>
-                        <strong>3/5</strong>
+                        <strong id="statsStations">0/5</strong>
                     </div>
                     <div class="stat-item">
                         <span>Решено задач:</span>
-                        <strong>67/150</strong>
+                        <strong id="statsTasks">0/0</strong>
                     </div>
                 </div>
             </aside>
@@ -107,10 +111,10 @@
                             </div>
                             <div class="exam-info">
                                 <h3>Этап 1: Тестирование</h3>
-                                <p>1800 вопросов из банка ФМЗА и МедикТест</p>
+                                <p id="dashboardTheories">0 вопросов из банка ФМЗА и МедикТест</p>
                                 <div class="exam-stats">
-                                    <span class="stat"><i class="fas fa-check-circle"></i> 842 пройдено</span>
-                                    <span class="stat"><i class="fas fa-clock"></i> 45% готово</span>
+                                    <span class="stat"><i class="fas fa-check-circle"></i> <span id="completedTheories">0</span> пройдено</span>
+                                    <span class="stat"><i class="fas fa-clock"></i> <span id="progressTheories">0%</span> готово</span>
                                 </div>
                             </div>
                             <button class="button primary start-exam">Начать подготовку</button>
@@ -124,8 +128,8 @@
                                 <h3>Этап 2: Практические станции</h3>
                                 <p>5 обязательных станций с чек-листами</p>
                                 <div class="exam-stats">
-                                    <span class="stat"><i class="fas fa-check-circle"></i> 3 освоено</span>
-                                    <span class="stat"><i class="fas fa-clock"></i> 60% готово</span>
+                                    <span class="stat"><i class="fas fa-check-circle"></i> <span id="completedStations">0</span> освоено</span>
+                                    <span class="stat"><i class="fas fa-clock"></i> <span id="progressStations">0%</span> готово</span>
                                 </div>
                             </div>
                             <button class="button primary start-exam">Начать отработку</button>
@@ -137,14 +141,29 @@
                             </div>
                             <div class="exam-info">
                                 <h3>Этап 3: Ситуационные задачи</h3>
-                                <p>150 клинических задач с решениями</p>
+                                <p id="dashboardTasks">0 клинических задач с решениями</p>
                                 <div class="exam-stats">
-                                    <span class="stat"><i class="fas fa-check-circle"></i> 67 решено</span>
-                                    <span class="stat"><i class="fas fa-clock"></i> 45% готово</span>
+                                    <span class="stat"><i class="fas fa-check-circle"></i> <span id="completedTasks">0</span> решено</span>
+                                    <span class="stat"><i class="fas fa-clock"></i> <span id="progressTasks">0%</span> готово</span>
                                 </div>
                             </div>
                             <button class="button primary start-exam">Начать решение</button>
                         </div>
+                    </div>
+
+                    <div class="daily-challenge">
+                        <div class="challenge-header">
+                            <h3><i class="fas fa-calendar-day"></i> Ежедневное задание</h3>
+                            <span class="challenge-reward">+100 XP</span>
+                        </div>
+                        <p>Пройдите 10 вопросов из любого раздела сегодня</p>
+                        <div class="challenge-progress">
+                            <div class="progress">
+                                <div class="progress-bar" id="dailyProgress" style="width: 0%"></div>
+                            </div>
+                            <span id="dailyProgressText">0/10</span>
+                        </div>
+                        <button class="button primary" id="startDailyChallenge">Начать ежедневное задание</button>
                     </div>
 
                     <div class="quick-actions">
@@ -188,6 +207,7 @@
                                 <option value="obstetrics">Акушерство и гинекология</option>
                                 <option value="neurology">Неврология</option>
                                 <option value="psychiatry">Психиатрия</option>
+                                <option value="pharmacology">Фармакология</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -200,11 +220,11 @@
                             </select>
                         </div>
                         <button class="button primary" id="startRandomTest">
-                            <i class="fas fa-random"></i> Случайный тест
+                            <i class="fas fa-random"></i> Случайный тест (20 вопросов)
                         </button>
                     </div>
 
-                    <div class="quiz-container hidden">
+                    <div class="quiz-container hidden" id="quizContainer">
                         <div class="quiz-header">
                             <div class="quiz-progress">
                                 <span>Вопрос <span id="currentQuestion">1</span> из <span id="totalQuestions">20</span></span>
@@ -220,8 +240,8 @@
 
                         <div class="quiz-card">
                             <div class="question-header">
-                                <h4 class="question" id="quizQuestion">Какой препарат является антидотом при отравлении парацетамолом?</h4>
-                                <span class="difficulty medium">Средняя</span>
+                                <h4 class="question" id="quizQuestion"></h4>
+                                <span class="difficulty medium" id="questionDifficulty">Средняя</span>
                             </div>
                             
                             <div class="options" id="quizOptions">
@@ -235,12 +255,37 @@
 
                             <div class="quiz-explanation hidden" id="quizExplanation">
                                 <h5><i class="fas fa-lightbulb"></i> Объяснение:</h5>
-                                <p>Ацетилцистеин является антидотом при отравлении парацетамолом, так как восполняет запасы глутатиона в печени и предотвращает гепатотоксическое действие N-ацетил-p-бензохинонимина.</p>
+                                <p id="explanationText"></p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="theory-stats">
+                    <div class="quiz-results hidden" id="quizResults">
+                        <div class="results-card">
+                            <h3>Результаты теста</h3>
+                            <div class="results-stats">
+                                <div class="result-stat">
+                                    <span class="stat-value" id="correctAnswers">0</span>
+                                    <span class="stat-label">Правильных ответов</span>
+                                </div>
+                                <div class="result-stat">
+                                    <span class="stat-value" id="totalQuestionsResult">0</span>
+                                    <span class="stat-label">Всего вопросов</span>
+                                </div>
+                                <div class="result-stat">
+                                    <span class="stat-value" id="successRate">0%</span>
+                                    <span class="stat-label">Успешность</span>
+                                </div>
+                            </div>
+                            <div class="results-xp">
+                                <i class="fas fa-star"></i>
+                                <span>Получено <strong id="earnedXP">0</strong> XP</span>
+                            </div>
+                            <button class="button primary" id="restartQuiz">Пройти еще раз</button>
+                        </div>
+                    </div>
+
+                    <div class="theory-stats" id="theoryStats">
                         <div class="stat-card">
                             <div class="stat-icon">
                                 <i class="fas fa-brain"></i>
@@ -248,9 +293,9 @@
                             <div class="stat-info">
                                 <h3>Общая эффективность</h3>
                                 <div class="progress">
-                                    <div class="progress-bar" style="width: 78%"></div>
+                                    <div class="progress-bar" id="efficiencyProgress" style="width: 0%"></div>
                                 </div>
-                                <span class="stat-value">78%</span>
+                                <span class="stat-value" id="efficiencyValue">0%</span>
                             </div>
                         </div>
                         <div class="stat-card">
@@ -259,7 +304,7 @@
                             </div>
                             <div class="stat-info">
                                 <h3>Скорость решения</h3>
-                                <span class="stat-value">45 сек/вопрос</span>
+                                <span class="stat-value" id="speedValue">0 сек/вопрос</span>
                             </div>
                         </div>
                     </div>
@@ -273,98 +318,9 @@
                     </div>
 
                     <div class="stations-grid">
-                        <div class="station-card" data-station="cpr">
-                            <div class="station-header">
-                                <div class="station-icon">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
-                                <div class="station-info">
-                                    <h3>СЛР</h3>
-                                    <span class="station-time">10 минут</span>
-                                </div>
-                                <span class="completion-badge completed">Освоено</span>
-                            </div>
-                            <p>Сердечно-лёгочная реанимация взрослого и ребёнка</p>
-                            <div class="station-actions">
-                                <button class="button primary practice-station">Тренировать</button>
-                                <button class="button secondary view-checklist">Чек-лист</button>
-                            </div>
-                        </div>
-
-                        <div class="station-card" data-station="emergency">
-                            <div class="station-header">
-                                <div class="station-icon">
-                                    <i class="fas fa-ambulance"></i>
-                                </div>
-                                <div class="station-info">
-                                    <h3>Неотложная помощь</h3>
-                                    <span class="station-time">15 минут</span>
-                                </div>
-                                <span class="completion-badge in-progress">В процессе</span>
-                            </div>
-                            <p>Оказание неотложной помощи при острых состояниях</p>
-                            <div class="station-actions">
-                                <button class="button primary practice-station">Тренировать</button>
-                                <button class="button secondary view-checklist">Чек-лист</button>
-                            </div>
-                        </div>
-
-                        <div class="station-card" data-station="examination">
-                            <div class="station-header">
-                                <div class="station-icon">
-                                    <i class="fas fa-stethoscope"></i>
-                                </div>
-                                <div class="station-info">
-                                    <h3>Физикальное обследование</h3>
-                                    <span class="station-time">12 минут</span>
-                                </div>
-                                <span class="completion-badge completed">Освоено</span>
-                            </div>
-                            <p>Обследование сердечно-сосудистой и дыхательной систем</p>
-                            <div class="station-actions">
-                                <button class="button primary practice-station">Тренировать</button>
-                                <button class="button secondary view-checklist">Чек-лист</button>
-                            </div>
-                        </div>
-
-                        <div class="station-card" data-station="history">
-                            <div class="station-header">
-                                <div class="station-icon">
-                                    <i class="fas fa-comment-medical"></i>
-                                </div>
-                                <div class="station-info">
-                                    <h3>Сбор жалоб и анамнеза</h3>
-                                    <span class="station-time">8 минут</span>
-                                </div>
-                                <span class="completion-badge not-started">Не начато</span>
-                            </div>
-                            <p>Стандартизированный сбор информации у пациента</p>
-                            <div class="station-actions">
-                                <button class="button primary practice-station">Тренировать</button>
-                                <button class="button secondary view-checklist">Чек-лист</button>
-                            </div>
-                        </div>
-
-                        <div class="station-card" data-station="prevention">
-                            <div class="station-header">
-                                <div class="station-icon">
-                                    <i class="fas fa-shield-virus"></i>
-                                </div>
-                                <div class="station-info">
-                                    <h3>Профилактический осмотр</h3>
-                                    <span class="station-time">10 минут</span>
-                                </div>
-                                <span class="completion-badge in-progress">В процессе</span>
-                            </div>
-                            <p>Профосмотр и рекомендации по профилактике</p>
-                            <div class="station-actions">
-                                <button class="button primary practice-station">Тренировать</button>
-                                <button class="button secondary view-checklist">Чек-лист</button>
-                            </div>
-                        </div>
+                        <!-- Станции будут заполнены JavaScript -->
                     </div>
 
-                    <!-- Станция для отработки -->
                     <div class="station-practice hidden" id="stationPractice">
                         <div class="practice-header">
                             <h3 id="practiceStationName">СЛР - Сердечно-лёгочная реанимация</h3>
@@ -435,11 +391,11 @@
                         <div class="task-content hidden" id="taskContent">
                             <div class="task-scenario">
                                 <h4>Клинический случай</h4>
-                                <p id="taskDescription">Пациент 45 лет, жалуется на боли за грудиной давящего характера с иррадиацией в левую руку, длительностью 20 минут. АД 150/90 мм рт.ст., ЧСС 95 уд/мин. В анамнезе - артериальная гипертензия.</p>
+                                <p id="taskDescription"></p>
                             </div>
 
                             <div class="task-question">
-                                <h4 id="taskQuestion">Какие лабораторные и инструментальные обследования необходимо назначить?</h4>
+                                <h4 id="taskQuestion"></h4>
                                 <div class="task-options" id="taskOptions">
                                     <!-- Options will be populated by JavaScript -->
                                 </div>
@@ -451,19 +407,44 @@
                             </div>
                         </div>
 
+                        <div class="task-results hidden" id="taskResults">
+                            <div class="results-card">
+                                <h3>Результаты решения задачи</h3>
+                                <div class="results-stats">
+                                    <div class="result-stat">
+                                        <span class="stat-value" id="taskCorrectAnswers">0</span>
+                                        <span class="stat-label">Правильных ответов</span>
+                                    </div>
+                                    <div class="result-stat">
+                                        <span class="stat-value" id="taskTotalSteps">0</span>
+                                        <span class="stat-label">Всего этапов</span>
+                                    </div>
+                                    <div class="result-stat">
+                                        <span class="stat-value" id="taskSuccessRate">0%</span>
+                                        <span class="stat-label">Успешность</span>
+                                    </div>
+                                </div>
+                                <div class="results-xp">
+                                    <i class="fas fa-star"></i>
+                                    <span>Получено <strong id="taskEarnedXP">0</strong> XP</span>
+                                </div>
+                                <button class="button primary" id="restartTask">Решить еще задачу</button>
+                            </div>
+                        </div>
+
                         <div class="tasks-stats">
                             <h4>Статистика по задачам</h4>
                             <div class="stats-grid">
                                 <div class="mini-stat">
-                                    <span class="stat-value">67</span>
+                                    <span class="stat-value" id="solvedTasks">0</span>
                                     <span class="stat-label">Решено задач</span>
                                 </div>
                                 <div class="mini-stat">
-                                    <span class="stat-value">82%</span>
+                                    <span class="stat-value" id="taskAccuracy">0%</span>
                                     <span class="stat-label">Правильных ответов</span>
                                 </div>
                                 <div class="mini-stat">
-                                    <span class="stat-value">7.2</span>
+                                    <span class="stat-value" id="averageScore">0</span>
                                     <span class="stat-label">Средний балл</span>
                                 </div>
                             </div>
@@ -471,7 +452,145 @@
                     </div>
                 </section>
 
-                <!-- Дополнительные секции будут добавлены аналогично -->
+                <!-- Прогресс -->
+                <section id="progress" class="tab-content">
+                    <div class="section-header">
+                        <h2>Ваш прогресс</h2>
+                        <p>Отслеживайте ваши достижения и результаты</p>
+                    </div>
+
+                    <div class="progress-content">
+                        <div class="progress-stats">
+                            <div class="progress-stat-card">
+                                <div class="progress-stat-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="progress-stat-info">
+                                    <h3>Тестирование</h3>
+                                    <div class="progress-stat-numbers">
+                                        <div class="progress-stat-number">
+                                            <span class="number" id="progressTheoriesCompleted">0</span>
+                                            <span class="label">Пройдено вопросов</span>
+                                        </div>
+                                        <div class="progress-stat-number">
+                                            <span class="number" id="progressTheoriesAccuracy">0%</span>
+                                            <span class="label">Точность</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="progress-stat-card">
+                                <div class="progress-stat-icon">
+                                    <i class="fas fa-procedures"></i>
+                                </div>
+                                <div class="progress-stat-info">
+                                    <h3>Практические станции</h3>
+                                    <div class="progress-stat-numbers">
+                                        <div class="progress-stat-number">
+                                            <span class="number" id="progressStationsCompleted">0</span>
+                                            <span class="label">Освоено станций</span>
+                                        </div>
+                                        <div class="progress-stat-number">
+                                            <span class="number" id="progressStationsScore">0</span>
+                                            <span class="label">Средний балл</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="progress-stat-card">
+                                <div class="progress-stat-icon">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div class="progress-stat-info">
+                                    <h3>Ситуационные задачи</h3>
+                                    <div class="progress-stat-numbers">
+                                        <div class="progress-stat-number">
+                                            <span class="number" id="progressTasksCompleted">0</span>
+                                            <span class="label">Решено задач</span>
+                                        </div>
+                                        <div class="progress-stat-number">
+                                            <span class="number" id="progressTasksAccuracy">0%</span>
+                                            <span class="label">Точность</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-chart">
+                            <h3>Прогресс по дням</h3>
+                            <div class="chart-container">
+                                <canvas id="progressChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Материалы -->
+                <section id="materials" class="tab-content">
+                    <div class="section-header">
+                        <h2>Учебные материалы</h2>
+                        <p>Чек-листы, алгоритмы и справочные материалы</p>
+                    </div>
+
+                    <div class="materials-grid">
+                        <div class="material-card">
+                            <div class="material-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h3>Чек-листы станций</h3>
+                            <p>Полные чек-листы для всех практических станций аккредитации</p>
+                            <button class="button primary download-btn" data-file="checklists">Скачать PDF</button>
+                        </div>
+
+                        <div class="material-card">
+                            <div class="material-icon">
+                                <i class="fas fa-book-medical"></i>
+                            </div>
+                            <h3>Фармакология</h3>
+                            <p>Основные препараты, дозировки, показания и противопоказания</p>
+                            <button class="button primary download-btn" data-file="pharmacology">Скачать PDF</button>
+                        </div>
+
+                        <div class="material-card">
+                            <div class="material-icon">
+                                <i class="fas fa-procedures"></i>
+                            </div>
+                            <h3>Алгоритмы действий</h3>
+                            <p>Стандартные операционные процедуры для неотложных состояний</p>
+                            <button class="button primary download-btn" data-file="algorithms">Скачать PDF</button>
+                        </div>
+
+                        <div class="material-card">
+                            <div class="material-icon">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <h3>Протоколы СЛР</h3>
+                            <p>Актуальные протоколы сердечно-лёгочной реанимации</p>
+                            <button class="button primary download-btn" data-file="cpr">Скачать PDF</button>
+                        </div>
+
+                        <div class="material-card">
+                            <div class="material-icon">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                            <h3>Клинические рекомендации</h3>
+                            <p>Официальные клинические рекомендации по основным заболеваниям</p>
+                            <button class="button primary download-btn" data-file="guidelines">Скачать PDF</button>
+                        </div>
+
+                        <div class="material-card">
+                            <div class="material-icon">
+                                <i class="fas fa-stethoscope"></i>
+                            </div>
+                            <h3>Дифференциальная диагностика</h3>
+                            <p>Алгоритмы дифференциальной диагностики частых симптомов</p>
+                            <button class="button primary download-btn" data-file="diagnosis">Скачать PDF</button>
+                        </div>
+                    </div>
+                </section>
             </main>
         </div>
 
@@ -487,6 +606,7 @@
                         <li>ФМЗА</li>
                         <li>МедикТест</li>
                         <li>Аккредитационные чек-листы</li>
+                        <li>Клинические рекомендации</li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -499,6 +619,65 @@
             </div>
         </footer>
     </div>
+
+    <!-- Модальное окно профиля -->
+    <div class="modal hidden" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Профиль пользователя</h3>
+                <button class="modal-close" id="closeProfileModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-modal-content">
+                    <div class="profile-modal-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="profile-modal-info">
+                        <h4 id="modalProfileName">Доктор Иванов А.С.</h4>
+                        <p id="modalProfileRole">Студент 6 курса лечебного факультета</p>
+                        <div class="profile-modal-stats">
+                            <div class="modal-stat">
+                                <span class="modal-stat-value" id="modalLevel">1</span>
+                                <span class="modal-stat-label">Уровень</span>
+                            </div>
+                            <div class="modal-stat">
+                                <span class="modal-stat-value" id="modalXP">0</span>
+                                <span class="modal-stat-label">Опыт</span>
+                            </div>
+                            <div class="modal-stat">
+                                <span class="modal-stat-value" id="modalDays">1</span>
+                                <span class="modal-stat-label">Дней в системе</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-modal-achievements">
+                    <h4>Достижения</h4>
+                    <div class="achievements-list">
+                        <div class="achievement-item completed">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Первый тест</span>
+                        </div>
+                        <div class="achievement-item locked">
+                            <i class="fas fa-heart"></i>
+                            <span>Мастер СЛР</span>
+                        </div>
+                        <div class="achievement-item locked">
+                            <i class="fas fa-brain"></i>
+                            <span>1000 вопросов</span>
+                        </div>
+                        <div class="achievement-item locked">
+                            <i class="fas fa-trophy"></i>
+                            <span>Аккредитованный специалист</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
