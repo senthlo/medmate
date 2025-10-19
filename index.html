@@ -99,7 +99,7 @@
             <main class="main">
                 <!-- Главная панель -->
                 <section id="dashboard" class="tab-content active">
-                    <div class="section-header">
+                    <div class="welcome-section">
                         <h2>Добро пожаловать в систему подготовки!</h2>
                         <p>Выберите этап подготовки к аккредитации</p>
                     </div>
@@ -285,7 +285,7 @@
                         </div>
                     </div>
 
-                    <div class="theory-stats" id="theoryStats">
+                    <div class="theory-stats">
                         <div class="stat-card">
                             <div class="stat-icon">
                                 <i class="fas fa-brain"></i>
@@ -307,6 +307,15 @@
                                 <span class="stat-value" id="speedValue">0 сек/вопрос</span>
                             </div>
                         </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Лучшая серия</h3>
+                                <span class="stat-value" id="bestStreak">0</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -317,7 +326,7 @@
                         <p>Отработка навыков по чек-листам аккредитации</p>
                     </div>
 
-                    <div class="stations-grid">
+                    <div class="stations-grid" id="stationsGrid">
                         <!-- Станции будут заполнены JavaScript -->
                     </div>
 
@@ -339,7 +348,10 @@
                                 <div class="timer-section">
                                     <h4>Таймер выполнения</h4>
                                     <div class="timer-display" id="stationTimer">10:00</div>
-                                    <button class="button" id="startTimer">Старт</button>
+                                    <div class="timer-controls">
+                                        <button class="button" id="startTimer">Старт</button>
+                                        <button class="button secondary" id="resetTimer">Сброс</button>
+                                    </div>
                                 </div>
                                 
                                 <div class="scoring-section">
@@ -460,6 +472,23 @@
                     </div>
 
                     <div class="progress-content">
+                        <div class="progress-overview">
+                            <div class="overview-card">
+                                <div class="overview-icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div class="overview-info">
+                                    <h3>Общий прогресс</h3>
+                                    <div class="overview-progress">
+                                        <div class="progress">
+                                            <div class="progress-bar" id="overallProgress" style="width: 0%"></div>
+                                        </div>
+                                        <span id="overallProgressText">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="progress-stats">
                             <div class="progress-stat-card">
                                 <div class="progress-stat-icon">
@@ -523,6 +552,60 @@
                             <h3>Прогресс по дням</h3>
                             <div class="chart-container">
                                 <canvas id="progressChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="achievements-section">
+                            <h3>Достижения</h3>
+                            <div class="achievements-grid">
+                                <div class="achievement" data-achievement="first-test">
+                                    <div class="achievement-icon">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                    <div class="achievement-info">
+                                        <h4>Первый тест</h4>
+                                        <p>Пройдите ваш первый тест</p>
+                                    </div>
+                                    <div class="achievement-status locked">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                </div>
+                                <div class="achievement" data-achievement="cpr-master">
+                                    <div class="achievement-icon">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div class="achievement-info">
+                                        <h4>Мастер СЛР</h4>
+                                        <p>Освойте станцию СЛР на 100%</p>
+                                    </div>
+                                    <div class="achievement-status locked">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                </div>
+                                <div class="achievement" data-achievement="theory-expert">
+                                    <div class="achievement-icon">
+                                        <i class="fas fa-brain"></i>
+                                    </div>
+                                    <div class="achievement-info">
+                                        <h4>Эксперт теории</h4>
+                                        <p>Пройдите 1000 вопросов</p>
+                                    </div>
+                                    <div class="achievement-status locked">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                </div>
+                                <div class="achievement" data-achievement="task-master">
+                                    <div class="achievement-icon">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="achievement-info">
+                                        <h4>Мастер задач</h4>
+                                        <p>Решите 50 ситуационных задач</p>
+                                    </div>
+                                    <div class="achievement-status locked">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -655,7 +738,7 @@
                 <div class="profile-modal-achievements">
                     <h4>Достижения</h4>
                     <div class="achievements-list">
-                        <div class="achievement-item completed">
+                        <div class="achievement-item locked">
                             <i class="fas fa-graduation-cap"></i>
                             <span>Первый тест</span>
                         </div>
