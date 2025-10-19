@@ -1,436 +1,504 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MedMate — интерактивная подготовка к аккредитации</title>
-<style>
-:root{
-  --bg1:#0f172a10; --card:#ffffff; --accent1:#5eead4; --accent2:#60a5fa;
-  --accent:#2563eb; --accent-2:#06b6d4; --good:#10b981; --bad:#ef4444;
-  --muted:#6b7280; --glass: rgba(255,255,255,0.6);
-  --shadow: 0 12px 30px rgba(2,6,23,0.08);
-  --radius:14px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, Arial;background:linear-gradient(180deg,#eaf2ff 0%, #ffffff 50%);color:#0f172a}
-.container{max-width:1100px;margin:18px auto;padding:18px}
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;gap:12px;align-items:center}
-.logo{
-  width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));
-  display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:20px;box-shadow:var(--shadow)
-}
-.title{line-height:1}
-.title h1{margin:0;font-size:20px}
-.title p{margin:2px 0 0;color:var(--muted);font-size:13px}
-
-/* Top controls */
-.controls{display:flex;gap:10px;align-items:center}
-.xp{background:linear-gradient(90deg,#d9f99d,#86efac);padding:8px 12px;border-radius:999px;font-weight:700}
-.level{background:linear-gradient(90deg,#bfdbfe,#60a5fa);padding:8px 12px;border-radius:999px;font-weight:700;color:white}
-.streak{background:linear-gradient(90deg,#fde68a,#fca5a5);padding:8px 12px;border-radius:999px;font-weight:700}
-.coins{background:linear-gradient(90deg,#facc15,#fcd34d);padding:8px 12px;border-radius:999px;font-weight:700;color:#1f2937}
-
-/* main layout */
-.grid{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-top:18px}
-.sidebar{position:sticky;top:18px;background:var(--card);padding:14px;border-radius:var(--radius);box-shadow:var(--shadow)}
-.nav{display:flex;flex-direction:column;gap:8px}
-.tab{padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(2,6,23,0.04);display:flex;align-items:center;gap:10px}
-.tab.active{background:linear-gradient(90deg,#eff6ff,#fff);border:1px solid rgba(37,99,235,0.12);box-shadow:0 10px 30px rgba(59,130,246,0.08)}
-.badge{margin-left:auto;background:#eef2ff;color:var(--accent);padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
-
-/* main area */
-.main{min-height:520px}
-.hero{padding:18px;border-radius:14px;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:var(--shadow);display:flex;gap:18px;align-items:center}
-.hero .left{flex:1}
-.hero .right{width:240px;text-align:center}
-.hero h2{margin:0;font-size:18px}
-.hero p{margin:6px 0 0;color:var(--muted)}
-
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
-.card{background:var(--card);padding:14px;border-radius:12px;box-shadow:var(--shadow);border:1px solid rgba(2,6,23,0.03)}
-.card h3{margin:0 0 8px}
-.small{color:var(--muted);font-size:13px}
-
-/* theory UI */
-.question{font-weight:800;margin-bottom:12px;font-size:18px}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.option{background:linear-gradient(180deg,#fff,#fbfdff);padding:12px;border-radius:10px;border:1px solid rgba(2,6,23,0.04);cursor:pointer;transition:transform .12s ease,box-shadow .12s}
-.option:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(2,6,23,0.06)}
-.option.correct{border-color:rgba(16,185,129,0.2);box-shadow:0 12px 30px rgba(16,185,129,0.06)}
-.option.wrong{border-color:rgba(239,68,68,0.12);box-shadow:0 12px 30px rgba(239,68,68,0.06)}
-
-/* practice station format */
-.station{
-  display:grid;grid-template-columns:1fr 360px;gap:12px;align-items:start
-}
-.station-left{padding:12px}
-.station-right{padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(2,6,23,0.03)}
-.steps{list-style:none;padding:0;margin:0}
-.steps li{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;background:white;border:1px solid rgba(2,6,23,0.03)}
-.steps li.done{background:linear-gradient(90deg,#ecfdf5,#f0fff4);border-color:rgba(16,185,129,0.12)}
-
-/* progress map */
-#progressMap div{transition:all .4s ease;text-align:center;}
-
-/* cases */
-.case-step{padding:12px;border-radius:10px;margin-bottom:10px;background:white;border:1px solid rgba(2,6,23,0.03)}
-.case-opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-
-/* footer & misc */
-.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
-.center{display:flex;align-items:center;justify-content:center}
-.progress{height:12px;background:#f1f5f9;border-radius:999px;overflow:hidden}
-.progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#34d399,#60a5fa);transition:width .5s ease}
-
-/* responsive */
-@media (max-width:980px){.grid{grid-template-columns:1fr}.station{grid-template-columns:1fr}.hero .right{display:none}}
-</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MedMate — Подготовка к аккредитации</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <div class="logo">MM</div>
-        <div class="title">
-          <h1>MedMate — подготовка к аккредитации</h1>
-          <p class="small">Интерактивные задания, станции и кейсы — всё готово к демонстрации</p>
-        </div>
-      </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="container">
+        <header class="header">
+            <div class="brand">
+                <div class="logo"><i class="fas fa-stethoscope"></i></div>
+                <div class="title">
+                    <h1>MedMate</h1>
+                    <p>Подготовка к первичной аккредитации</p>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="user-type-selector">
+                    <select id="userType">
+                        <option value="nurse">Медбрат/Медсестра (3 курс)</option>
+                        <option value="doctor">Врач (6 курс)</option>
+                    </select>
+                </div>
+                <span class="xp"><i class="fas fa-star"></i> <span id="xpValue">2500</span> XP</span>
+                <span class="level"><i class="fas fa-level-up-alt"></i> Уровень <span id="levelValue">12</span></span>
+                <button class="button profile-btn"><i class="fas fa-user-circle"></i> Профиль</button>
+            </div>
+        </header>
 
-      <div class="controls">
-        <div class="xp" id="xpBadge">XP: 0</div>
-        <div class="level" id="levelBadge">Lvl 1 👶</div>
-        <div class="streak" id="streakBadge">Streak: 0</div>
-        <div class="coins" id="coinsBadge">💊 0</div>
-      </div>
+        <div class="exam-progress">
+            <div class="progress-steps">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <span>Тесты</span>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <span>Станции</span>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <span>Задачи</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <aside class="sidebar">
+                <nav class="nav">
+                    <div class="tab active" data-tab="dashboard">
+                        <i class="fas fa-home"></i> Главная
+                    </div>
+                    <div class="tab" data-tab="theory">
+                        <i class="fas fa-book-medical"></i> Тесты <span class="badge" id="theoryCount">1800</span>
+                    </div>
+                    <div class="tab" data-tab="stations">
+                        <i class="fas fa-diagnoses"></i> Станции <span class="badge">5</span>
+                    </div>
+                    <div class="tab" data-tab="tasks">
+                        <i class="fas fa-tasks"></i> Задачи <span class="badge" id="tasksCount">150</span>
+                    </div>
+                    <div class="tab" data-tab="simulator">
+                        <i class="fas fa-vr-cardboard"></i> Тренажёр
+                    </div>
+                    <div class="tab" data-tab="materials">
+                        <i class="fas fa-file-alt"></i> Материалы
+                    </div>
+                </nav>
+                
+                <div class="quick-stats">
+                    <h4>Быстрая статистика</h4>
+                    <div class="stat-item">
+                        <span>Пройдено тестов:</span>
+                        <strong>842/1800</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Отработано станций:</span>
+                        <strong>3/5</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Решено задач:</span>
+                        <strong>67/150</strong>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main">
+                <!-- Главная панель -->
+                <section id="dashboard" class="tab-content active">
+                    <div class="section-header">
+                        <h2>Добро пожаловать в систему подготовки!</h2>
+                        <p>Выберите этап подготовки к аккредитации</p>
+                    </div>
+                    
+                    <div class="exam-cards">
+                        <div class="exam-card large" data-exam="theory">
+                            <div class="exam-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="exam-info">
+                                <h3>Этап 1: Тестирование</h3>
+                                <p>1800 вопросов из банка ФМЗА и МедикТест</p>
+                                <div class="exam-stats">
+                                    <span class="stat"><i class="fas fa-check-circle"></i> 842 пройдено</span>
+                                    <span class="stat"><i class="fas fa-clock"></i> 45% готово</span>
+                                </div>
+                            </div>
+                            <button class="button primary start-exam">Начать подготовку</button>
+                        </div>
+
+                        <div class="exam-card large" data-exam="stations">
+                            <div class="exam-icon">
+                                <i class="fas fa-procedures"></i>
+                            </div>
+                            <div class="exam-info">
+                                <h3>Этап 2: Практические станции</h3>
+                                <p>5 обязательных станций с чек-листами</p>
+                                <div class="exam-stats">
+                                    <span class="stat"><i class="fas fa-check-circle"></i> 3 освоено</span>
+                                    <span class="stat"><i class="fas fa-clock"></i> 60% готово</span>
+                                </div>
+                            </div>
+                            <button class="button primary start-exam">Начать отработку</button>
+                        </div>
+
+                        <div class="exam-card large" data-exam="tasks">
+                            <div class="exam-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="exam-info">
+                                <h3>Этап 3: Ситуационные задачи</h3>
+                                <p>150 клинических задач с решениями</p>
+                                <div class="exam-stats">
+                                    <span class="stat"><i class="fas fa-check-circle"></i> 67 решено</span>
+                                    <span class="stat"><i class="fas fa-clock"></i> 45% готово</span>
+                                </div>
+                            </div>
+                            <button class="button primary start-exam">Начать решение</button>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <h3>Быстрый доступ</h3>
+                        <div class="action-cards">
+                            <div class="action-card" data-action="random-theory">
+                                <i class="fas fa-random"></i>
+                                <span>Случайные вопросы</span>
+                            </div>
+                            <div class="action-card" data-action="cpr-training">
+                                <i class="fas fa-heartbeat"></i>
+                                <span>Отработка СЛР</span>
+                            </div>
+                            <div class="action-card" data-action="emergency">
+                                <i class="fas fa-ambulance"></i>
+                                <span>Неотложная помощь</span>
+                            </div>
+                            <div class="action-card" data-action="checklists">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Чек-листы</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Тесты -->
+                <section id="theory" class="tab-content">
+                    <div class="section-header">
+                        <h2>Подготовка к тестированию</h2>
+                        <p>Банк вопросов из ФМЗА, МедикТест и актуальных источников</p>
+                    </div>
+
+                    <div class="theory-controls">
+                        <div class="filter-group">
+                            <label>Дисциплина:</label>
+                            <select id="disciplineFilter">
+                                <option value="all">Все дисциплины</option>
+                                <option value="therapy">Терапия</option>
+                                <option value="surgery">Хирургия</option>
+                                <option value="pediatrics">Педиатрия</option>
+                                <option value="obstetrics">Акушерство и гинекология</option>
+                                <option value="neurology">Неврология</option>
+                                <option value="psychiatry">Психиатрия</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Сложность:</label>
+                            <select id="difficultyFilter">
+                                <option value="all">Любая сложность</option>
+                                <option value="easy">Легкая</option>
+                                <option value="medium">Средняя</option>
+                                <option value="hard">Сложная</option>
+                            </select>
+                        </div>
+                        <button class="button primary" id="startRandomTest">
+                            <i class="fas fa-random"></i> Случайный тест
+                        </button>
+                    </div>
+
+                    <div class="quiz-container hidden">
+                        <div class="quiz-header">
+                            <div class="quiz-progress">
+                                <span>Вопрос <span id="currentQuestion">1</span> из <span id="totalQuestions">20</span></span>
+                                <div class="progress">
+                                    <div class="progress-bar" id="quizProgress" style="width: 5%"></div>
+                                </div>
+                            </div>
+                            <div class="quiz-timer">
+                                <i class="fas fa-clock"></i>
+                                <span id="quizTimer">30:00</span>
+                            </div>
+                        </div>
+
+                        <div class="quiz-card">
+                            <div class="question-header">
+                                <h4 class="question" id="quizQuestion">Какой препарат является антидотом при отравлении парацетамолом?</h4>
+                                <span class="difficulty medium">Средняя</span>
+                            </div>
+                            
+                            <div class="options" id="quizOptions">
+                                <!-- Options will be populated by JavaScript -->
+                            </div>
+
+                            <div class="quiz-actions">
+                                <button class="button secondary" id="skipQuestion">Пропустить</button>
+                                <button class="button primary" id="nextQuestion" disabled>Следующий вопрос</button>
+                            </div>
+
+                            <div class="quiz-explanation hidden" id="quizExplanation">
+                                <h5><i class="fas fa-lightbulb"></i> Объяснение:</h5>
+                                <p>Ацетилцистеин является антидотом при отравлении парацетамолом, так как восполняет запасы глутатиона в печени и предотвращает гепатотоксическое действие N-ацетил-p-бензохинонимина.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="theory-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Общая эффективность</h3>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 78%"></div>
+                                </div>
+                                <span class="stat-value">78%</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Скорость решения</h3>
+                                <span class="stat-value">45 сек/вопрос</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Станции -->
+                <section id="stations" class="tab-content">
+                    <div class="section-header">
+                        <h2>Практические станции</h2>
+                        <p>Отработка навыков по чек-листам аккредитации</p>
+                    </div>
+
+                    <div class="stations-grid">
+                        <div class="station-card" data-station="cpr">
+                            <div class="station-header">
+                                <div class="station-icon">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div class="station-info">
+                                    <h3>СЛР</h3>
+                                    <span class="station-time">10 минут</span>
+                                </div>
+                                <span class="completion-badge completed">Освоено</span>
+                            </div>
+                            <p>Сердечно-лёгочная реанимация взрослого и ребёнка</p>
+                            <div class="station-actions">
+                                <button class="button primary practice-station">Тренировать</button>
+                                <button class="button secondary view-checklist">Чек-лист</button>
+                            </div>
+                        </div>
+
+                        <div class="station-card" data-station="emergency">
+                            <div class="station-header">
+                                <div class="station-icon">
+                                    <i class="fas fa-ambulance"></i>
+                                </div>
+                                <div class="station-info">
+                                    <h3>Неотложная помощь</h3>
+                                    <span class="station-time">15 минут</span>
+                                </div>
+                                <span class="completion-badge in-progress">В процессе</span>
+                            </div>
+                            <p>Оказание неотложной помощи при острых состояниях</p>
+                            <div class="station-actions">
+                                <button class="button primary practice-station">Тренировать</button>
+                                <button class="button secondary view-checklist">Чек-лист</button>
+                            </div>
+                        </div>
+
+                        <div class="station-card" data-station="examination">
+                            <div class="station-header">
+                                <div class="station-icon">
+                                    <i class="fas fa-stethoscope"></i>
+                                </div>
+                                <div class="station-info">
+                                    <h3>Физикальное обследование</h3>
+                                    <span class="station-time">12 минут</span>
+                                </div>
+                                <span class="completion-badge completed">Освоено</span>
+                            </div>
+                            <p>Обследование сердечно-сосудистой и дыхательной систем</p>
+                            <div class="station-actions">
+                                <button class="button primary practice-station">Тренировать</button>
+                                <button class="button secondary view-checklist">Чек-лист</button>
+                            </div>
+                        </div>
+
+                        <div class="station-card" data-station="history">
+                            <div class="station-header">
+                                <div class="station-icon">
+                                    <i class="fas fa-comment-medical"></i>
+                                </div>
+                                <div class="station-info">
+                                    <h3>Сбор жалоб и анамнеза</h3>
+                                    <span class="station-time">8 минут</span>
+                                </div>
+                                <span class="completion-badge not-started">Не начато</span>
+                            </div>
+                            <p>Стандартизированный сбор информации у пациента</p>
+                            <div class="station-actions">
+                                <button class="button primary practice-station">Тренировать</button>
+                                <button class="button secondary view-checklist">Чек-лист</button>
+                            </div>
+                        </div>
+
+                        <div class="station-card" data-station="prevention">
+                            <div class="station-header">
+                                <div class="station-icon">
+                                    <i class="fas fa-shield-virus"></i>
+                                </div>
+                                <div class="station-info">
+                                    <h3>Профилактический осмотр</h3>
+                                    <span class="station-time">10 минут</span>
+                                </div>
+                                <span class="completion-badge in-progress">В процессе</span>
+                            </div>
+                            <p>Профосмотр и рекомендации по профилактике</p>
+                            <div class="station-actions">
+                                <button class="button primary practice-station">Тренировать</button>
+                                <button class="button secondary view-checklist">Чек-лист</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Станция для отработки -->
+                    <div class="station-practice hidden" id="stationPractice">
+                        <div class="practice-header">
+                            <h3 id="practiceStationName">СЛР - Сердечно-лёгочная реанимация</h3>
+                            <button class="button secondary" id="closePractice">Закрыть</button>
+                        </div>
+                        
+                        <div class="practice-content">
+                            <div class="checklist-section">
+                                <h4>Чек-лист выполнения</h4>
+                                <div class="checklist" id="stationChecklist">
+                                    <!-- Checklist items will be populated by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <div class="practice-tools">
+                                <div class="timer-section">
+                                    <h4>Таймер выполнения</h4>
+                                    <div class="timer-display" id="stationTimer">10:00</div>
+                                    <button class="button" id="startTimer">Старт</button>
+                                </div>
+                                
+                                <div class="scoring-section">
+                                    <h4>Оценка выполнения</h4>
+                                    <div class="score-display">
+                                        <span>Баллы: </span>
+                                        <strong id="stationScore">0/25</strong>
+                                    </div>
+                                    <button class="button primary" id="submitStation">Завершить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Задачи -->
+                <section id="tasks" class="tab-content">
+                    <div class="section-header">
+                        <h2>Ситуационные задачи</h2>
+                        <p>Клинические задачи с последовательным решением</p>
+                    </div>
+
+                    <div class="tasks-container">
+                        <div class="task-filters">
+                            <div class="filter-group">
+                                <label>Специальность:</label>
+                                <select id="taskSpecialty">
+                                    <option value="all">Все специальности</option>
+                                    <option value="therapy">Терапия</option>
+                                    <option value="surgery">Хирургия</option>
+                                    <option value="pediatrics">Педиатрия</option>
+                                    <option value="obstetrics">Акушерство и гинекология</option>
+                                </select>
+                            </div>
+                            <button class="button primary" id="startRandomTask">
+                                <i class="fas fa-random"></i> Случайная задача
+                            </button>
+                        </div>
+
+                        <div class="task-progress hidden" id="taskProgress">
+                            <div class="progress-steps">
+                                <div class="task-step active" data-step="1">Обследование</div>
+                                <div class="task-step" data-step="2">Диагностика</div>
+                                <div class="task-step" data-step="3">Диф. диагностика</div>
+                                <div class="task-step" data-step="4">Лечение</div>
+                            </div>
+                        </div>
+
+                        <div class="task-content hidden" id="taskContent">
+                            <div class="task-scenario">
+                                <h4>Клинический случай</h4>
+                                <p id="taskDescription">Пациент 45 лет, жалуется на боли за грудиной давящего характера с иррадиацией в левую руку, длительностью 20 минут. АД 150/90 мм рт.ст., ЧСС 95 уд/мин. В анамнезе - артериальная гипертензия.</p>
+                            </div>
+
+                            <div class="task-question">
+                                <h4 id="taskQuestion">Какие лабораторные и инструментальные обследования необходимо назначить?</h4>
+                                <div class="task-options" id="taskOptions">
+                                    <!-- Options will be populated by JavaScript -->
+                                </div>
+                            </div>
+
+                            <div class="task-actions">
+                                <button class="button secondary" id="prevTaskStep" disabled>Назад</button>
+                                <button class="button primary" id="nextTaskStep">Далее</button>
+                            </div>
+                        </div>
+
+                        <div class="tasks-stats">
+                            <h4>Статистика по задачам</h4>
+                            <div class="stats-grid">
+                                <div class="mini-stat">
+                                    <span class="stat-value">67</span>
+                                    <span class="stat-label">Решено задач</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="stat-value">82%</span>
+                                    <span class="stat-label">Правильных ответов</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="stat-value">7.2</span>
+                                    <span class="stat-label">Средний балл</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Дополнительные секции будут добавлены аналогично -->
+            </main>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>MedMate</h4>
+                    <p>Система подготовки к первичной аккредитации медицинских работников</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Источники</h4>
+                    <ul>
+                        <li>ФМЗА</li>
+                        <li>МедикТест</li>
+                        <li>Аккредитационные чек-листы</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Поддержка</h4>
+                    <p>По вопросам работы системы обращайтесь в техническую поддержку</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2025 MedMate. Все права защищены. На основе реального опыта выпускников.
+            </div>
+        </footer>
     </div>
-
-    <div class="grid">
-      <!-- SIDEBAR -->
-      <aside class="sidebar">
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
-          <div style="flex:1">
-            <div class="small">Выбран курс</div>
-            <div style="font-weight:800" id="chosenCourse">—</div>
-          </div>
-          <div>
-            <button class="tab" onclick="openCourseChooser()">Сменить</button>
-          </div>
-        </div>
-
-        <nav class="nav">
-          <div class="tab active" data-tab="home" onclick="switchTab('home')">🏠 Главное <span class="badge">NEW</span></div>
-          <div class="tab" data-tab="map" onclick="switchTab('map')">🗺️ Карта</div>
-          <div class="tab" data-tab="theory" onclick="switchTab('theory')">🧠 Теория</div>
-          <div class="tab" data-tab="practice" onclick="switchTab('practice')">💉 Практика</div>
-          <div class="tab" data-tab="cases" onclick="switchTab('cases')">📝 Кейсы</div>
-          <div class="tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 Рейтинг</div>
-          <div class="tab" data-tab="profile" onclick="switchTab('profile')">👤 Профиль</div>
-        </nav>
-
-        <div style="margin-top:12px" class="small">
-          <div style="margin-bottom:6px">Прогресс курса</div>
-          <div class="progress"><i id="globalProgress" style="width:0%"></i></div>
-        </div>
-      </aside>
-
-      <!-- MAIN -->
-      <main class="main" id="mainArea">
-        <!-- HOME -->
-        <section id="tab-home" class="card">
-          <div class="hero">
-            <div class="left">
-              <h2 id="welcomeTitle">Добро пожаловать в MedMate</h2>
-              <p class="small">Сначала выберите курс, затем проходите модули: теория, практика и кейсы. Всё сохранится локально.</p>
-
-              <div style="margin-top:12px;display:flex;gap:8px">
-                <button class="btn" style="padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent-2),var(--accent)) ;color:white" onclick="openCourseChooser()">Выбрать курс</button>
-                <button class="btn ghost" style="background:transparent;border:1px solid rgba(37,99,235,0.08);" onclick="switchTab('theory')">Перейти в теорию</button>
-              </div>
-            </div>
-            <div class="right">
-              <div style="background:linear-gradient(180deg,#fff,#f8fafc);padding:12px;border-radius:10px;box-shadow:var(--shadow)">
-                <div style="font-weight:800">Твой прогресс</div>
-                <div style="margin-top:8px" class="small">Очки и бейджи — мотивация для ежедневной практики</div>
-                <div style="margin-top:12px"><div class="small">Очки: <span id="points">0</span></div>
-                <div style="margin-top:8px"><div class="small">Combo: <span id="combo">0</span></div></div></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="cards">
-            <div class="card">
-              <h3>Быстрый старт</h3>
-              <div class="small">Пройдите 3 вопроса теории и 1 станцию — получите бонусный бейдж "Starter".</div>
-              <div style="margin-top:12px"><button class="btn" onclick="startQuickRun()">Запустить Quick Run</button></div>
-            </div>
-
-            <div class="card">
-              <h3>Рекомендации</h3>
-              <div class="small">Сфокусируйтесь на практике: станции имеют чек-листы и видеоинструкции.</div>
-            </div>
-
-            <div class="card">
-              <h3>Кейсы</h3>
-              <div class="small">Реалистичные сценарии — выбирай правильно, получай очки.</div>
-              <div style="margin-top:10px"><button class="btn ghost" onclick="switchTab('cases')">Открыть кейсы</button></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- PROGRESS MAP -->
-        <section id="tab-map" class="card hide">
-          <h3>Карта обучения</h3>
-          <div id="progressMap" style="display:flex;gap:12px;align-items:center;overflow-x:auto;padding:12px"></div>
-        </section>
-
-        <!-- THEORY -->
-        <section id="tab-theory" class="card hide">
-          <div id="theoryArea"></div>
-        </section>
-
-        <!-- PRACTICE -->
-        <section id="tab-practice" class="card hide">
-          <div id="practiceArea"></div>
-        </section>
-
-        <!-- CASES -->
-        <section id="tab-cases" class="card hide">
-          <div id="casesArea"></div>
-        </section>
-
-        <!-- LEADERBOARD -->
-        <section id="tab-leaderboard" class="card hide">
-          <h3>Топ студентов</h3>
-          <div id="leaderboardList"></div>
-        </section>
-
-        <!-- PROFILE -->
-        <section id="tab-profile" class="card hide">
-          <h3>Профиль</h3>
-          <div class="small">Пока профиль локальный — в будущем можно подключить авторизацию и сервер.</div>
-          <div style="margin-top:12px">
-            <div class="small">Имя: <strong id="profileName">Student</strong></div>
-            <div class="small" style="margin-top:8px">Очки: <strong id="profilePoints">0</strong></div>
-            <div style="margin-top:8px">💊 Мед-коины: <span id="coinsCount">0</span></div>
-            <div style="margin-top:12px"><button class="btn ghost" onclick="resetAll()">Сбросить прогресс</button></div>
-          </div>
-        </section>
-
-      </main>
-    </div>
-
-    <div class="footer">MedMate — прототип для демонстрации. Видеоинструкции вставляются в раздел Практики.</div>
-  </div>
-
-<script>
-// ===== STATE =====
-let state = JSON.parse(localStorage.getItem('medmateState') || '{}');
-state.xp = state.xp||0;
-state.level = state.level||1;
-state.streak = state.streak||0;
-state.coins = state.coins||0;
-state.completedStations = state.completedStations||{};
-state.currentCase = null;
-state.course = state.course||null;
-state.points = state.points||0;
-state.combo = state.combo||0;
-
-// ===== CONTENT =====
-const COURSES = ['Кардиология','Неврология','Терапия'];
-const CONTENT = {
-  theory:[
-    {q:'Что измеряет пульс?', opts:['Давление','Частоту сердечных сокращений'], ans:1},
-    {q:'Что такое гипертония?', opts:['Высокое давление','Низкое давление'], ans:0},
-    {q:'Какая артерия самая крупная?', opts:['Аорта','Лёгочная'], ans:0}
-  ],
-  practice:[
-    {id:'slr', name:'Станция СЛР', steps:['Подготовка','Проверка сознания','Сердечно-лёгочная реанимация']},
-    {id:'ausc', name:'Станция Аускультация', steps:['Подготовка','Слушаем сердце','Записываем результаты']}
-  ],
-  cases:[
-    {id:'case1', title:'Пациент с болью в груди', steps:[
-      {text:'Что делать сначала?', options:['Проверить пульс','Дать таблетку'], correct:0},
-      {text:'Следующее действие?', options:['Вызвать скорую','Наложить гипс'], correct:0}
-    ]}
-  ]
-};
-const LEVELS = [
-  {lvl:1,name:'👶 Студент'},
-  {lvl:2,name:'🩺 Интерн'},
-  {lvl:3,name:'💉 Молодой врач'},
-  {lvl:4,name:'🧠 Эксперт'}
-];
-const LEADERBOARD = [
-  {name:'Альфия Мидхатовна', points:120, avatar:'👩‍⚕️', faculty:'💙'},
-  {name:'Иван Петров', points:110, avatar:'👨‍⚕️', faculty:'❤️'}
-];
-
-// ===== STORAGE =====
-function saveState(){ localStorage.setItem('medmateState', JSON.stringify(state)); updateUI();}
-
-// ===== UI =====
-function switchTab(tab){
-  document.querySelectorAll('.main > section').forEach(s=>s.classList.add('hide'));
-  document.getElementById('tab-'+tab).classList.remove('hide');
-  document.querySelectorAll('.nav .tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('.nav .tab[data-tab="'+tab+'"]').classList.add('active');
-}
-function openCourseChooser(){
-  const c = prompt('Выберите курс:\n'+COURSES.join('\n'),state.course||'');
-  if(coursesIncludes(c)){ setCourse(c);}
-}
-function coursesIncludes(c){return COURSES.includes(c);}
-function setCourse(c){
-  state.course = c; saveState();
-  document.getElementById('chosenCourse').innerText=c;
-  renderProgressMap();
-  switchTab('map');
-  renderTheory();
-  renderPractice();
-  renderCases();
-  renderLeaderboard();
-}
-function showToast(msg){alert(msg);}
-function addPoints(n){
-  state.points += n;
-  state.combo++;
-  state.xp += n;
-  updateLevel();
-  saveState();
-}
-function resetCombo(){state.combo=0; saveState();}
-function updateLevel(){
-  let nextLvl = LEVELS.filter(l=>state.xp>=l.lvl*30).pop();
-  state.level = nextLvl ? nextLvl.lvl : 1;
-}
-
-// ===== MAP =====
-function renderProgressMap(){
-  if(!state.course) return;
-  const stations = CONTENT.practice.map(st=>st.id);
-  const container = document.getElementById('progressMap');
-  container.innerHTML = '';
-  stations.forEach(id=>{
-    const done = state.completedStations[id]?.length === CONTENT.practice.find(s=>s.id===id).steps.length;
-    const el = document.createElement('div');
-    el.style.padding='12px 18px';
-    el.style.borderRadius='12px';
-    el.style.background=done?'linear-gradient(90deg,#34d399,#60a5fa)':'#e2e8f0';
-    el.style.color=done?'white':'#1f2937';
-    el.style.fontWeight='700';
-    el.style.cursor='pointer';
-    el.innerText = id.toUpperCase();
-    if(done) el.innerHTML += ' 🎉';
-    el.onclick = ()=>openStation(id);
-    container.appendChild(el);
-  });
-}
-
-// ===== THEORY =====
-function renderTheory(){
-  const container = document.getElementById('theoryArea');
-  container.innerHTML='';
-  CONTENT.theory.forEach((q,i)=>{
-    const div = document.createElement('div'); div.className='card'; div.style.marginBottom='12px';
-    div.innerHTML = `<div class="question">${q.q}</div><div class="options">${q.opts.map((o,oi)=>`<div class="option" onclick="checkTheory(${i},${oi},this)">${o}</div>`).join('')}</div>`;
-    container.appendChild(div);
-  });
-}
-function checkTheory(qidx,optIdx,el){
-  const q = CONTENT.theory[qidx];
-  if(optIdx===q.ans){ el.classList.add('correct'); addPoints(10); showToast('+10 XP');}
-  else{el.classList.add('wrong'); resetCombo();}
-}
-
-// ===== PRACTICE =====
-function renderPractice(){
-  const container = document.getElementById('practiceArea');
-  container.innerHTML='';
-  CONTENT.practice.forEach(st=>{
-    const div = document.createElement('div'); div.className='card station';
-    div.innerHTML=`<div class="station-left"><h4>${st.name}</h4><ul class="steps">${st.steps.map(s=>`<li>${s}</li>`).join('')}</ul></div>
-    <div class="station-right" id="station-${st.id}"><div class="small">Нажмите на шаг, чтобы отметить как выполненный</div></div>`;
-    container.appendChild(div);
-  });
-}
-function openStation(id){
-  const st = CONTENT.practice.find(s=>s.id===id);
-  const container = document.getElementById('station-'+id);
-  container.innerHTML='';
-  st.steps.forEach((s,idx)=>{
-    const btn = document.createElement('button'); btn.innerText=s; btn.style.margin='6px'; btn.onclick=()=>{
-      state.completedStations[id] = state.completedStations[id]||[];
-      if(!state.completedStations[id].includes(idx)){
-        state.completedStations[id].push(idx);
-        addPoints(5); btn.innerText='✔ '+s;
-        renderProgressMap();
-        showToast(`+5 XP — шаг выполнен`);
-      }
-    };
-    container.appendChild(btn);
-  });
-}
-
-// ===== CASES =====
-function renderCases(){
-  const container = document.getElementById('casesArea');
-  container.innerHTML='';
-  CONTENT.cases.forEach(c=>{
-    const div = document.createElement('div'); div.className='card';
-    div.innerHTML = `<h4>${c.title}</h4><div>${c.steps.map((st,idx)=>`<div class="case-step"><div>${st.text}</div><div class="case-opts">${st.options.map((o,oi)=>`<button onclick="checkCase(${c.id==='case1'?0:0},${idx},${oi},this)">${o}</button>`).join('')}</div></div>`).join('')}</div>`;
-    container.appendChild(div);
-  });
-}
-function checkCase(caseIdx,stepIdx,optIdx,btn){
-  const correct = CONTENT.cases[caseIdx].steps[stepIdx].correct===optIdx;
-  if(correct){btn.style.background='#10b981'; addPoints(12);}
-  else{btn.style.background='#ef4444'; resetCombo();}
-  btn.disabled=true;
-}
-
-// ===== LEADERBOARD =====
-function renderLeaderboard(){
-  const container = document.getElementById('leaderboardList');
-  container.innerHTML='';
-  LEADERBOARD.forEach(s=>{
-    const el = document.createElement('div');
-    el.style.display='flex'; el.style.alignItems='center'; el.style.gap='8px'; el.style.marginBottom='6px';
-    el.innerHTML = `<span>${s.avatar}</span><strong>${s.name}</strong> ${s.faculty} — ${s.points} очков 🔥`;
-    container.appendChild(el);
-  });
-}
-
-// ===== UI UPDATE =====
-function updateUI(){
-  document.getElementById('xpBadge').innerText = 'XP: '+state.xp;
-  const rankName = LEVELS.filter(l=>state.level>=l.lvl).pop()?.name||'👶';
-  document.getElementById('levelBadge').innerText = `Lvl ${state.level} ${rankName}`;
-  document.getElementById('streakBadge').innerText = `Streak: ${state.streak}`;
-  document.getElementById('coinsBadge').innerText = `💊 ${state.coins}`;
-  document.getElementById('points').innerText = state.points;
-  document.getElementById('combo').innerText = state.combo;
-  document.getElementById('profilePoints').innerText = state.points;
-  document.getElementById('coinsCount').innerText = state.coins;
-}
-
-// ===== QUICK RUN =====
-function startQuickRun(){
-  if(!state.course){ alert('Сначала выберите курс'); return;}
-  renderTheory();
-  renderPractice();
-  renderCases();
-  showToast('Quick Run запущен! Проходите шаги.');
-}
-
-// ===== RESET =====
-function resetAll(){if(confirm('Сбросить прогресс?')){localStorage.removeItem('medmateState'); location.reload();}}
-
-// ===== INIT =====
-updateUI();
-if(state.course){ setCourse(state.course); }else{switchTab('home');}
-</script>
+    <script src="script.js"></script>
 </body>
 </html>
