@@ -4,9 +4,32 @@ class MedMateApp {
         this.currentLevel = 1;
         this.userType = 'doctor';
         this.userStats = {
-            theories: { completed: 0, total: 0, correct: 0 },
-            stations: { completed: 0, total: 5, scores: {} },
-            tasks: { completed: 0, total: 0, correct: 0 }
+            theories: { 
+                completed: 0, 
+                total: 1800, 
+                correct: 0,
+                timeSpent: 0,
+                bestStreak: 0,
+                currentStreak: 0
+            },
+            stations: { 
+                completed: 0, 
+                total: 5, 
+                scores: {},
+                practiceCount: {}
+            },
+            tasks: { 
+                completed: 0, 
+                total: 150, 
+                correct: 0,
+                averageScore: 0
+            }
+        };
+        this.achievements = {
+            'first-test': false,
+            'cpr-master': false,
+            'theory-expert': false,
+            'task-master': false
         };
         this.dailyProgress = {
             questions: 0,
@@ -15,35 +38,78 @@ class MedMateApp {
         };
         this.progressHistory = [];
         this.currentExam = null;
+        
+        // Инициализация состояний
+        this.quizState = {
+            questions: [],
+            currentQuestionIndex: 0,
+            userAnswers: [],
+            timeLeft: 1800,
+            timer: null
+        };
+        
+        this.taskState = {
+            currentTask: null,
+            currentStep: 1,
+            userAnswers: [],
+            score: 0
+        };
+        
         this.initializeApp();
     }
 
     initializeApp() {
         this.loadProgress();
-        this.initializeTabs();
-        this.initializeUserType();
-        this.initializeExamProgress();
-        this.initializeTheory();
-        this.initializeStations();
-        this.initializeTasks();
-        this.initializeQuickActions();
-        this.initializeMobileFeatures();
-        this.initializeProfile();
+        this.initializeEventListeners();
         this.updateAllDisplays();
         this.checkDailyChallenge();
-        
         this.updateContentForUserType();
+    }
+
+    initializeEventListeners() {
+        // Навигация по вкладкам
+        this.initializeTabs();
+        
+        // Пользовательские настройки
+        this.initializeUserType();
+        
+        // Тесты
+        this.initializeTheory();
+        
+        // Станции
+        this.initializeStations();
+        
+        // Задачи
+        this.initializeTasks();
+        
+        // Быстрые действия
+        this.initializeQuickActions();
+        
+        // Мобильные функции
+        this.initializeMobileFeatures();
+        
+        // Профиль
+        this.initializeProfile();
+        
+        // Прогресс экзамена
+        this.initializeExamProgress();
     }
 
     loadProgress() {
         const saved = localStorage.getItem('medmate_progress');
         if (saved) {
-            const data = JSON.parse(saved);
-            this.currentXP = data.currentXP || 0;
-            this.currentLevel = data.currentLevel || 1;
-            this.userStats = data.userStats || this.userStats;
-            this.dailyProgress = data.dailyProgress || this.dailyProgress;
-            this.progressHistory = data.progressHistory || [];
+            try {
+                const data = JSON.parse(saved);
+                this.currentXP = data.currentXP || 0;
+                this.currentLevel = data.currentLevel || 1;
+                this.userStats = data.userStats || this.userStats;
+                this.achievements = data.achievements || this.achievements;
+                this.dailyProgress = data.dailyProgress || this.dailyProgress;
+                this.progressHistory = data.progressHistory || [];
+                
+            } catch (e) {
+                console.error('Error loading progress:', e);
+            }
         }
     }
 
@@ -52,20 +118,23 @@ class MedMateApp {
             currentXP: this.currentXP,
             currentLevel: this.currentLevel,
             userStats: this.userStats,
+            achievements: this.achievements,
             dailyProgress: this.dailyProgress,
-            progressHistory: this.progressHistory,
-            lastSave: new Date().toISOString()
+            progressHistory: this.progressHistory
         };
         localStorage.setItem('medmate_progress', JSON.stringify(data));
     }
 
     initializeTabs() {
+        console.log('Initializing tabs...');
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
 
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
                 const targetTab = tab.getAttribute('data-tab');
+                console.log('Tab clicked:', targetTab);
                 
                 // Update active tab
                 tabs.forEach(t => t.classList.remove('active'));
@@ -76,12 +145,13 @@ class MedMateApp {
                     content.classList.remove('active');
                     if (content.id === targetTab) {
                         content.classList.add('active');
+                        console.log('Showing tab:', targetTab);
                     }
                 });
 
                 // Special handling for progress tab
                 if (targetTab === 'progress') {
-                    this.updateProgressChart();
+                    this.updateProgressTab();
                 }
 
                 this.showToast('Переход выполнен успешно!', 'success');
@@ -91,14 +161,16 @@ class MedMateApp {
 
     initializeUserType() {
         const userTypeSelect = document.getElementById('userType');
-        userTypeSelect.value = this.userType;
-        
-        userTypeSelect.addEventListener('change', (e) => {
-            this.userType = e.target.value;
-            this.updateContentForUserType();
-            this.updateAllDisplays();
-            this.showToast(`Режим изменен: ${e.target.options[e.target.selectedIndex].text}`, 'info');
-        });
+        if (userTypeSelect) {
+            userTypeSelect.value = this.userType;
+            
+            userTypeSelect.addEventListener('change', (e) => {
+                this.userType = e.target.value;
+                this.updateContentForUserType();
+                this.updateAllDisplays();
+                this.showToast(`Режим изменен: ${e.target.options[e.target.selectedIndex].text}`, 'info');
+            });
+        }
     }
 
     updateContentForUserType() {
@@ -109,468 +181,237 @@ class MedMateApp {
             this.userStats.theories.total = 1800;
             this.userStats.tasks.total = 150;
         }
-        
         this.updateAllDisplays();
     }
 
-    updateAllDisplays() {
-        this.updateStatsDisplay();
-        this.updateDashboardDisplay();
-        this.updateProfileDisplay();
-        this.updateTheoryDisplay();
-        this.updateTasksDisplay();
-        this.updateProgressDisplay();
-        this.saveProgress();
-    }
-
-    updateStatsDisplay() {
-        document.getElementById('xpValue').textContent = this.currentXP;
-        document.getElementById('levelValue').textContent = this.currentLevel;
-        
-        document.getElementById('statsTheories').textContent = 
-            `${this.userStats.theories.completed}/${this.userStats.theories.total}`;
-        document.getElementById('statsStations').textContent = 
-            `${this.userStats.stations.completed}/${this.userStats.stations.total}`;
-        document.getElementById('statsTasks').textContent = 
-            `${this.userStats.tasks.completed}/${this.userStats.tasks.total}`;
-    }
-
-    updateDashboardDisplay() {
-        const theoryProgress = this.userStats.theories.total > 0 ? 
-            Math.round((this.userStats.theories.completed / this.userStats.theories.total) * 100) : 0;
-        
-        document.getElementById('dashboardTheories').textContent = 
-            `${this.userStats.theories.total} вопросов из банка ФМЗА и МедикТест`;
-        document.getElementById('completedTheories').textContent = this.userStats.theories.completed;
-        document.getElementById('progressTheories').textContent = `${theoryProgress}%`;
-
-        const stationsProgress = Math.round((this.userStats.stations.completed / this.userStats.stations.total) * 100);
-        document.getElementById('completedStations').textContent = this.userStats.stations.completed;
-        document.getElementById('progressStations').textContent = `${stationsProgress}%`;
-
-        const tasksProgress = this.userStats.tasks.total > 0 ? 
-            Math.round((this.userStats.tasks.completed / this.userStats.tasks.total) * 100) : 0;
-        document.getElementById('dashboardTasks').textContent = 
-            `${this.userStats.tasks.total} клинических задач с решениями`;
-        document.getElementById('completedTasks').textContent = this.userStats.tasks.completed;
-        document.getElementById('progressTasks').textContent = `${tasksProgress}%`;
-
-        // Update badges
-        document.getElementById('theoryCount').textContent = this.userStats.theories.total;
-        document.getElementById('tasksCount').textContent = this.userStats.tasks.total;
-    }
-
-    updateTheoryDisplay() {
-        const efficiency = this.userStats.theories.completed > 0 ? 
-            Math.round((this.userStats.theories.correct / this.userStats.theories.completed) * 100) : 0;
-        
-        document.getElementById('efficiencyValue').textContent = `${efficiency}%`;
-        document.getElementById('efficiencyProgress').style.width = `${efficiency}%`;
-        
-        // Calculate average speed (placeholder)
-        const avgSpeed = this.userStats.theories.completed > 0 ? 
-            Math.round(45000 / this.userStats.theories.completed) : 0;
-        document.getElementById('speedValue').textContent = `${avgSpeed} сек/вопрос`;
-    }
-
-    updateTasksDisplay() {
-        document.getElementById('solvedTasks').textContent = this.userStats.tasks.completed;
-        
-        const accuracy = this.userStats.tasks.completed > 0 ? 
-            Math.round((this.userStats.tasks.correct / (this.userStats.tasks.completed * 4)) * 100) : 0;
-        document.getElementById('taskAccuracy').textContent = `${accuracy}%`;
-        
-        const avgScore = this.userStats.tasks.completed > 0 ? 
-            (this.userStats.tasks.correct / this.userStats.tasks.completed).toFixed(1) : '0';
-        document.getElementById('averageScore').textContent = avgScore;
-    }
-
-    updateProgressDisplay() {
-        document.getElementById('progressTheoriesCompleted').textContent = this.userStats.theories.completed;
-        document.getElementById('progressTheoriesAccuracy').textContent = 
-            this.userStats.theories.completed > 0 ? 
-            `${Math.round((this.userStats.theories.correct / this.userStats.theories.completed) * 100)}%` : '0%';
-        
-        document.getElementById('progressStationsCompleted').textContent = this.userStats.stations.completed;
-        document.getElementById('progressStationsScore').textContent = 
-            this.userStats.stations.completed > 0 ? '4.2' : '0';
-        
-        document.getElementById('progressTasksCompleted').textContent = this.userStats.tasks.completed;
-        document.getElementById('progressTasksAccuracy').textContent = 
-            this.userStats.tasks.completed > 0 ? 
-            `${Math.round((this.userStats.tasks.correct / (this.userStats.tasks.completed * 4)) * 100)}%` : '0%';
-    }
-
-    updateProfileDisplay() {
-        const profileName = this.userType === 'nurse' ? 'Медсестра Петрова И.С.' : 'Доктор Иванов А.С.';
-        const profileRole = this.userType === 'nurse' ? 
-            'Студент 3 курса сестринского дела' : 'Студент 6 курса лечебного факультета';
-        
-        document.getElementById('profileName').textContent = profileName;
-        document.getElementById('profileRole').textContent = profileRole;
-        
-        // Update modal profile
-        document.getElementById('modalProfileName').textContent = profileName;
-        document.getElementById('modalProfileRole').textContent = profileRole;
-        document.getElementById('modalLevel').textContent = this.currentLevel;
-        document.getElementById('modalXP').textContent = this.currentXP;
-        
-        // Calculate days in system (placeholder)
-        const daysInSystem = Math.max(1, Math.floor(this.userStats.theories.completed / 50) + 1);
-        document.getElementById('modalDays').textContent = daysInSystem;
-    }
-
-    initializeExamProgress() {
-        const startExamButtons = document.querySelectorAll('.start-exam');
-        
-        startExamButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const examType = e.target.closest('.exam-card').getAttribute('data-exam');
-                this.startExamPreparation(examType);
-            });
-        });
-    }
-
-    startExamPreparation(examType) {
-        this.currentExam = examType;
-        
-        const steps = document.querySelectorAll('.step');
-        steps.forEach(step => step.classList.remove('active'));
-        
-        document.querySelector(`.step[data-step="${this.getStepNumber(examType)}"]`).classList.add('active');
-        
-        const targetTab = this.getTabForExam(examType);
-        document.querySelector(`.tab[data-tab="${targetTab}"]`).click();
-        
-        this.showToast(`Начата подготовка к этапу: ${this.getExamName(examType)}`, 'success');
-    }
-
-    getStepNumber(examType) {
-        const stepMap = { 'theory': 1, 'stations': 2, 'tasks': 3 };
-        return stepMap[examType] || 1;
-    }
-
-    getTabForExam(examType) {
-        const tabMap = { 'theory': 'theory', 'stations': 'stations', 'tasks': 'tasks' };
-        return tabMap[examType] || 'dashboard';
-    }
-
-    getExamName(examType) {
-        const nameMap = {
-            'theory': 'Тестирование',
-            'stations': 'Практические станции',
-            'tasks': 'Ситуационные задачи'
-        };
-        return nameMap[examType] || 'Подготовка';
-    }
+    // ========== ТЕСТЫ ==========
 
     initializeTheory() {
-        this.initializeQuiz();
-        this.initializeRandomTest();
-    }
+        console.log('Initializing theory...');
+        
+        const startTestBtn = document.getElementById('startRandomTest');
+        const skipQuestionBtn = document.getElementById('skipQuestion');
+        const nextQuestionBtn = document.getElementById('nextQuestion');
+        const restartQuizBtn = document.getElementById('restartQuiz');
 
-    initializeQuiz() {
-        this.quizState = {
-            currentQuestion: 0,
-            score: 0,
-            timer: null,
-            timeLeft: 1800,
-            questions: [],
-            userAnswers: [],
-            startTime: null
-        };
+        if (startTestBtn) {
+            startTestBtn.addEventListener('click', () => {
+                console.log('Start test clicked');
+                this.startRandomTest();
+            });
+        }
 
-        document.getElementById('startRandomTest').addEventListener('click', () => {
-            this.startRandomTest();
-        });
+        if (skipQuestionBtn) {
+            skipQuestionBtn.addEventListener('click', () => {
+                this.skipQuestion();
+            });
+        }
 
-        document.getElementById('nextQuestion').addEventListener('click', () => {
-            this.nextQuestion();
-        });
+        if (nextQuestionBtn) {
+            nextQuestionBtn.addEventListener('click', () => {
+                this.nextQuestion();
+            });
+        }
 
-        document.getElementById('skipQuestion').addEventListener('click', () => {
-            this.skipQuestion();
-        });
-
-        document.getElementById('restartQuiz').addEventListener('click', () => {
-            this.startRandomTest();
-        });
-    }
-
-    getSampleQuestions() {
-        return [
-            {
-                question: "Какой препарат является антидотом при отравлении парацетамолом?",
-                options: [
-                    { text: "Ацетилцистеин", correct: true },
-                    { text: "Налоксон", correct: false },
-                    { text: "Флумазенил", correct: false },
-                    { text: "Протамин", correct: false }
-                ],
-                explanation: "Ацетилцистеин является антидотом при отравлении парацетамолом, так как восполняет запасы глутатиона в печени и предотвращает гепатотоксическое действие N-ацетил-p-бензохинонимина.",
-                difficulty: "medium",
-                category: "pharmacology"
-            },
-            {
-                question: "Какой первый шаг при проведении сердечно-лёгочной реанимации?",
-                options: [
-                    { text: "Проверить пульс на сонной артерии", correct: false },
-                    { text: "Обеспечить проходимость дыхательных путей", correct: false },
-                    { text: "Оценить безопасность места происшествия", correct: true },
-                    { text: "Начать непрямой массаж сердца", correct: false }
-                ],
-                explanation: "Первым шагом всегда является оценка безопасности места происшествия для спасателя и пострадавшего.",
-                difficulty: "easy",
-                category: "emergency"
-            },
-            {
-                question: "При каком уровне SpO2 показана кислородотерапия у пациента с ХОБЛ?",
-                options: [
-                    { text: "Менее 90%", correct: false },
-                    { text: "Менее 88%", correct: true },
-                    { text: "Менее 85%", correct: false },
-                    { text: "Менее 92%", correct: false }
-                ],
-                explanation: "У пациентов с ХОБЛ кислородотерапия показана при SpO2 менее 88% из-за риска гиперкапнии.",
-                difficulty: "hard",
-                category: "therapy"
-            },
-            {
-                question: "Какой антибиотик является препаратом выбора при внебольничной пневмонии?",
-                options: [
-                    { text: "Амоксициллин/клавуланат", correct: true },
-                    { text: "Ципрофлоксацин", correct: false },
-                    { text: "Цефтриаксон", correct: false },
-                    { text: "Азитромицин", correct: false }
-                ],
-                explanation: "Амоксициллин/клавуланат является препаратом выбора при внебольничной пневмонии согласно российским рекомендациям.",
-                difficulty: "medium",
-                category: "therapy"
-            },
-            {
-                question: "Какой диагностический критерий используется для диагностики инфаркта миокарда?",
-                options: [
-                    { text: "Повышение тропонинов + клиническая картина", correct: true },
-                    { text: "Только изменения на ЭКГ", correct: false },
-                    { text: "Только боль в грудной клетке", correct: false },
-                    { text: "Повышение АЛТ и АСТ", correct: false }
-                ],
-                explanation: "Диагноз инфаркта миокарда устанавливается при сочетании повышения кардиоспецифичных тропонинов с клинической картиной и/или изменениями на ЭКГ.",
-                difficulty: "hard",
-                category: "cardiology"
-            },
-            {
-                question: "Какой препарат противопоказан при бронхиальной астме?",
-                options: [
-                    { text: "Бета-блокаторы", correct: true },
-                    { text: "Ингибиторы АПФ", correct: false },
-                    { text: "Блокаторы кальциевых каналов", correct: false },
-                    { text: "Диуретики", correct: false }
-                ],
-                explanation: "Бета-блокаторы могут вызывать бронхоспазм и противопоказаны при бронхиальной астме.",
-                difficulty: "medium",
-                category: "pharmacology"
-            },
-            {
-                question: "Какой симптом характерен для менингита?",
-                options: [
-                    { text: "Ригидность затылочных мышц", correct: true },
-                    { text: "Боль в пояснице", correct: false },
-                    { text: "Отеки ног", correct: false },
-                    { text: "Желтуха", correct: false }
-                ],
-                explanation: "Ригидность затылочных мышц - классический менингеальный симптом.",
-                difficulty: "easy",
-                category: "neurology"
-            },
-            {
-                question: "Какова первая помощь при гипогликемической коме?",
-                options: [
-                    { text: "Внутривенное введение 40% глюкозы", correct: true },
-                    { text: "Подкожное введение инсулина", correct: false },
-                    { text: "Внутримышечное введение глюкагона", correct: false },
-                    { text: "Пероральный прием сахара", correct: false }
-                ],
-                explanation: "При гипогликемической коме необходимо срочное внутривенное введение 40% глюкозы.",
-                difficulty: "medium",
-                category: "endocrinology"
-            }
-        ];
+        if (restartQuizBtn) {
+            restartQuizBtn.addEventListener('click', () => {
+                this.startRandomTest();
+            });
+        }
     }
 
     startRandomTest() {
-        const quizContainer = document.getElementById('quizContainer');
-        const resultsContainer = document.getElementById('quizResults');
-        const statsContainer = document.getElementById('theoryStats');
-        
-        quizContainer.classList.remove('hidden');
-        resultsContainer.classList.add('hidden');
-        statsContainer.classList.add('hidden');
-        
-        // Get filtered questions
-        const discipline = document.getElementById('disciplineFilter').value;
-        const difficulty = document.getElementById('difficultyFilter').value;
-        
-        let questions = this.getSampleQuestions();
-        
-        if (discipline !== 'all') {
-            questions = questions.filter(q => q.category === discipline);
-        }
-        
-        if (difficulty !== 'all') {
-            questions = questions.filter(q => q.difficulty === difficulty);
-        }
-        
-        // Shuffle and take 20 questions
-        questions = this.shuffleArray(questions).slice(0, 20);
-        
+        console.log('Starting random test...');
         this.quizState = {
-            currentQuestion: 0,
-            score: 0,
-            timer: null,
+            questions: this.generateSampleQuestions(20),
+            currentQuestionIndex: 0,
+            userAnswers: new Array(20).fill(-1),
             timeLeft: 1800,
-            questions: questions,
-            userAnswers: new Array(questions.length).fill(null),
-            startTime: Date.now()
+            timer: null
         };
-        
+
+        const quizContainer = document.getElementById('quizContainer');
+        const quizResults = document.getElementById('quizResults');
+
+        if (quizContainer) quizContainer.classList.remove('hidden');
+        if (quizResults) quizResults.classList.add('hidden');
+
         this.startQuizTimer();
-        this.displayQuestion();
+        this.showCurrentQuestion();
         
         this.showToast('Тест начат! У вас 30 минут.', 'info');
     }
 
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    generateSampleQuestions(count) {
+        const questions = [
+            {
+                id: 1,
+                question: 'Какая доза адреналина используется при сердечно-легочной реанимации у взрослых?',
+                options: [
+                    { text: '0.1 мг', correct: false },
+                    { text: '1 мг', correct: true },
+                    { text: '10 мг', correct: false },
+                    { text: '0.01 мг', correct: false }
+                ],
+                difficulty: 'medium',
+                explanation: 'При СЛР у взрослых используется адреналин 1 мг внутривенно каждые 3-5 минут.'
+            },
+            {
+                id: 2,
+                question: 'Какой антибиотик является препаратом выбора при внебольничной пневмонии?',
+                options: [
+                    { text: 'Амоксициллин', correct: false },
+                    { text: 'Цефтриаксон', correct: false },
+                    { text: 'Амоксициллин-клавуланат', correct: true },
+                    { text: 'Ципрофлоксацин', correct: false }
+                ],
+                difficulty: 'medium',
+                explanation: 'Амоксициллин-клавуланат рекомендуется как препарат выбора при внебольничной пневмонии.'
+            }
+        ];
+
+        // Дублируем вопросы чтобы получить нужное количество
+        const result = [];
+        for (let i = 0; i < count; i++) {
+            const original = questions[i % questions.length];
+            result.push({
+                ...original,
+                id: i + 1
+            });
         }
-        return array;
+        return result;
     }
 
     startQuizTimer() {
         if (this.quizState.timer) {
             clearInterval(this.quizState.timer);
         }
-        
+
         this.quizState.timer = setInterval(() => {
             this.quizState.timeLeft--;
-            this.updateTimerDisplay();
-            
+            this.updateQuizTimer();
+
             if (this.quizState.timeLeft <= 0) {
                 this.finishQuiz();
             }
         }, 1000);
     }
 
-    updateTimerDisplay() {
-        const minutes = Math.floor(this.quizState.timeLeft / 60);
-        const seconds = this.quizState.timeLeft % 60;
-        document.getElementById('quizTimer').textContent = 
-            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    updateQuizTimer() {
+        const timerElement = document.getElementById('quizTimer');
+        if (timerElement) {
+            const minutes = Math.floor(this.quizState.timeLeft / 60);
+            const seconds = this.quizState.timeLeft % 60;
+            timerElement.textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
     }
 
-    displayQuestion() {
-        if (this.quizState.questions.length === 0) return;
+    showCurrentQuestion() {
+        const currentQuestion = this.quizState.questions[this.quizState.currentQuestionIndex];
         
-        const question = this.quizState.questions[this.quizState.currentQuestion];
-        const questionElement = document.getElementById('quizQuestion');
-        const optionsElement = document.getElementById('quizOptions');
-        const progressElement = document.getElementById('quizProgress');
+        // Обновляем прогресс
         const currentQuestionElement = document.getElementById('currentQuestion');
         const totalQuestionsElement = document.getElementById('totalQuestions');
-        const difficultyElement = document.getElementById('questionDifficulty');
-        const explanationElement = document.getElementById('quizExplanation');
-        const nextButton = document.getElementById('nextQuestion');
+        const quizProgressElement = document.getElementById('quizProgress');
+        
+        if (currentQuestionElement) currentQuestionElement.textContent = this.quizState.currentQuestionIndex + 1;
+        if (totalQuestionsElement) totalQuestionsElement.textContent = this.quizState.questions.length;
+        
+        const progress = ((this.quizState.currentQuestionIndex + 1) / this.quizState.questions.length) * 100;
+        if (quizProgressElement) quizProgressElement.style.width = `${progress}%`;
 
-        questionElement.textContent = question.question;
-        currentQuestionElement.textContent = this.quizState.currentQuestion + 1;
-        totalQuestionsElement.textContent = this.quizState.questions.length;
+        // Показываем вопрос
+        const questionElement = document.getElementById('quizQuestion');
+        if (questionElement) questionElement.textContent = currentQuestion.question;
         
-        const progress = ((this.quizState.currentQuestion + 1) / this.quizState.questions.length) * 100;
-        progressElement.style.width = `${progress}%`;
-        
-        difficultyElement.textContent = this.getDifficultyText(question.difficulty);
-        difficultyElement.className = `difficulty ${question.difficulty}`;
-        
-        optionsElement.innerHTML = '';
-        
-        question.options.forEach((option, index) => {
-            const optionElement = document.createElement('div');
-            optionElement.className = 'option';
-            if (this.quizState.userAnswers[this.quizState.currentQuestion] === index) {
-                optionElement.classList.add('selected');
-            }
-            optionElement.innerHTML = `
-                <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-                <span class="option-text">${option.text}</span>
-            `;
-            
-            optionElement.addEventListener('click', () => {
-                this.selectOption(optionElement, option.correct, index);
+        // Обновляем сложность
+        const difficultyElement = document.getElementById('questionDifficulty');
+        if (difficultyElement) {
+            difficultyElement.textContent = this.getDifficultyText(currentQuestion.difficulty);
+            difficultyElement.className = `difficulty ${currentQuestion.difficulty}`;
+        }
+
+        // Показываем варианты ответов
+        const optionsContainer = document.getElementById('quizOptions');
+        if (optionsContainer) {
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                if (this.quizState.userAnswers[this.quizState.currentQuestionIndex] === index) {
+                    optionElement.classList.add('selected');
+                }
+
+                optionElement.innerHTML = `
+                    <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                    <div class="option-text">${option.text}</div>
+                `;
+
+                optionElement.addEventListener('click', () => {
+                    this.selectAnswer(index);
+                });
+
+                optionsContainer.appendChild(optionElement);
             });
-            
-            optionsElement.appendChild(optionElement);
-        });
-        
-        explanationElement.classList.add('hidden');
-        nextButton.disabled = this.quizState.userAnswers[this.quizState.currentQuestion] === null;
-        nextButton.textContent = this.quizState.currentQuestion === this.quizState.questions.length - 1 ? 
-            'Завершить тест' : 'Следующий вопрос';
+        }
+
+        // Скрываем объяснение
+        const explanationElement = document.getElementById('quizExplanation');
+        if (explanationElement) explanationElement.classList.add('hidden');
+
+        // Обновляем кнопки
+        const nextQuestionBtn = document.getElementById('nextQuestion');
+        if (nextQuestionBtn) {
+            nextQuestionBtn.disabled = this.quizState.userAnswers[this.quizState.currentQuestionIndex] === -1;
+        }
     }
 
     getDifficultyText(difficulty) {
-        const difficultyMap = { 'easy': 'Легко', 'medium': 'Средняя', 'hard': 'Сложная' };
-        return difficultyMap[difficulty] || 'Средняя';
+        const difficulties = {
+            'easy': 'Легкая',
+            'medium': 'Средняя',
+            'hard': 'Сложная'
+        };
+        return difficulties[difficulty] || 'Средняя';
     }
 
-    selectOption(optionElement, isCorrect, optionIndex) {
-        const options = document.querySelectorAll('.option');
-        const explanationElement = document.getElementById('quizExplanation');
-        const explanationText = document.getElementById('explanationText');
-        const nextButton = document.getElementById('nextQuestion');
+    selectAnswer(answerIndex) {
+        this.quizState.userAnswers[this.quizState.currentQuestionIndex] = answerIndex;
         
-        options.forEach(opt => {
-            opt.style.pointerEvents = 'none';
-            opt.classList.remove('selected', 'correct', 'wrong');
+        const options = document.querySelectorAll('#quizOptions .option');
+        options.forEach((option, index) => {
+            option.classList.toggle('selected', index === answerIndex);
         });
-        
-        this.quizState.userAnswers[this.quizState.currentQuestion] = optionIndex;
-        
-        optionElement.classList.add('selected');
-        
-        if (isCorrect) {
-            optionElement.classList.add('correct');
-        } else {
-            optionElement.classList.add('wrong');
-            options.forEach((opt, index) => {
-                if (this.quizState.questions[this.quizState.currentQuestion].options[index].correct) {
-                    opt.classList.add('correct');
-                }
-            });
-        }
-        
-        const explanation = this.quizState.questions[this.quizState.currentQuestion].explanation;
-        explanationText.textContent = explanation;
-        explanationElement.classList.remove('hidden');
-        
-        nextButton.disabled = false;
+
+        const nextQuestionBtn = document.getElementById('nextQuestion');
+        if (nextQuestionBtn) nextQuestionBtn.disabled = false;
+
+        this.showExplanation();
     }
 
-    nextQuestion() {
-        this.quizState.currentQuestion++;
+    showExplanation() {
+        const currentQuestion = this.quizState.questions[this.quizState.currentQuestionIndex];
+        const explanationText = document.getElementById('explanationText');
+        const explanationElement = document.getElementById('quizExplanation');
         
-        if (this.quizState.currentQuestion < this.quizState.questions.length) {
-            this.displayQuestion();
-        } else {
-            this.finishQuiz();
-        }
+        if (explanationText) explanationText.textContent = currentQuestion.explanation;
+        if (explanationElement) explanationElement.classList.remove('hidden');
     }
 
     skipQuestion() {
-        this.quizState.userAnswers[this.quizState.currentQuestion] = -1;
-        this.showToast('Вопрос пропущен', 'info');
+        this.quizState.userAnswers[this.quizState.currentQuestionIndex] = -1;
         this.nextQuestion();
+    }
+
+    nextQuestion() {
+        if (this.quizState.currentQuestionIndex < this.quizState.questions.length - 1) {
+            this.quizState.currentQuestionIndex++;
+            this.showCurrentQuestion();
+        } else {
+            this.finishQuiz();
+        }
     }
 
     finishQuiz() {
@@ -578,7 +419,7 @@ class MedMateApp {
             clearInterval(this.quizState.timer);
         }
         
-        // Calculate score
+        // Calculate results
         let correctAnswers = 0;
         this.quizState.userAnswers.forEach((answer, index) => {
             if (answer !== -1 && this.quizState.questions[index].options[answer].correct) {
@@ -590,274 +431,327 @@ class MedMateApp {
         const percentage = Math.round((correctAnswers / total) * 100);
         
         // Update results display
-        document.getElementById('correctAnswers').textContent = correctAnswers;
-        document.getElementById('totalQuestionsResult').textContent = total;
-        document.getElementById('successRate').textContent = `${percentage}%`;
+        const correctAnswersElement = document.getElementById('correctAnswers');
+        const totalQuestionsElement = document.getElementById('totalQuestionsResult');
+        const successRateElement = document.getElementById('successRate');
         
-        // Calculate and award XP
-        const baseXP = correctAnswers * 10;
-        const timeBonus = this.quizState.timeLeft > 600 ? 50 : 0;
-        const perfectBonus = correctAnswers === total ? 100 : 0;
-        const totalXP = baseXP + timeBonus + perfectBonus;
+        if (correctAnswersElement) correctAnswersElement.textContent = correctAnswers;
+        if (totalQuestionsElement) totalQuestionsElement.textContent = total;
+        if (successRateElement) successRateElement.textContent = `${percentage}%`;
         
-        document.getElementById('earnedXP').textContent = totalXP;
+        // Calculate XP
+        const totalXP = correctAnswers * 10;
+        const earnedXPElement = document.getElementById('earnedXP');
+        if (earnedXPElement) earnedXPElement.textContent = totalXP;
         
-        // Update user stats
+        // Update stats
         this.userStats.theories.completed += total;
         this.userStats.theories.correct += correctAnswers;
         
-        // Update daily progress
         this.dailyProgress.questions += total;
         this.updateDailyProgress();
         
-        // Show results and hide quiz
-        document.getElementById('quizContainer').classList.add('hidden');
-        document.getElementById('quizResults').classList.remove('hidden');
-        document.getElementById('theoryStats').classList.remove('hidden');
+        // Show results
+        const quizContainer = document.getElementById('quizContainer');
+        const quizResults = document.getElementById('quizResults');
         
-        // Award XP
+        if (quizContainer) quizContainer.classList.add('hidden');
+        if (quizResults) quizResults.classList.remove('hidden');
+        
         this.awardXP(totalXP);
-        
-        // Add to progress history
-        this.addProgressRecord('theory', correctAnswers, total);
+        this.updateAllDisplays();
         
         this.showToast(`Тест завершен! Результат: ${correctAnswers}/${total} (${percentage}%). Получено ${totalXP} XP`, 'success');
-        this.updateAllDisplays();
     }
 
+    // ========== СТАНЦИИ ==========
+
     initializeStations() {
-        this.initializeStationPractice();
-        this.initializeChecklists();
+        console.log('Initializing stations...');
         this.renderStationsGrid();
+        this.initializeStationPractice();
+    }
+
+    initializeStationPractice() {
+        // Обработчики для кнопок станций
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('practice-station')) {
+                const stationCard = e.target.closest('.station-card');
+                const stationId = stationCard.getAttribute('data-station');
+                this.startStationPractice(stationId);
+            }
+            
+            if (e.target.classList.contains('view-checklist')) {
+                const stationCard = e.target.closest('.station-card');
+                const stationId = stationCard.getAttribute('data-station');
+                this.showChecklist(stationId);
+            }
+            
+            if (e.target.classList.contains('view-video')) {
+                const stationCard = e.target.closest('.station-card');
+                const stationId = stationCard.getAttribute('data-station');
+                this.showTrainingVideo(stationId);
+            }
+        });
+
+        // Обработчики для практики станций
+        const closePracticeBtn = document.getElementById('closePractice');
+        const submitStationBtn = document.getElementById('submitStation');
+        const startTimerBtn = document.getElementById('startTimer');
+        const resetTimerBtn = document.getElementById('resetTimer');
+
+        if (closePracticeBtn) {
+            closePracticeBtn.addEventListener('click', () => {
+                this.closeStationPractice();
+            });
+        }
+
+        if (submitStationBtn) {
+            submitStationBtn.addEventListener('click', () => {
+                this.submitStationPractice();
+            });
+        }
+
+        if (startTimerBtn) {
+            startTimerBtn.addEventListener('click', () => {
+                this.startStationTimer();
+            });
+        }
+
+        if (resetTimerBtn) {
+            resetTimerBtn.addEventListener('click', () => {
+                this.resetStationTimer();
+            });
+        }
     }
 
     renderStationsGrid() {
-        const stationsGrid = document.querySelector('.stations-grid');
+        const stationsGrid = document.getElementById('stationsGrid');
+        if (!stationsGrid) return;
+
         const stations = [
             {
                 id: 'cpr',
                 name: 'СЛР',
                 time: '10 минут',
                 description: 'Сердечно-лёгочная реанимация взрослого и ребёнка',
-                completed: this.userStats.stations.scores.cpr !== undefined
+                icon: 'heartbeat'
             },
             {
                 id: 'emergency',
                 name: 'Неотложная помощь',
                 time: '15 минут',
                 description: 'Оказание неотложной помощи при острых состояниях',
-                completed: this.userStats.stations.scores.emergency !== undefined
+                icon: 'ambulance'
             },
             {
                 id: 'examination',
                 name: 'Физикальное обследование',
                 time: '12 минут',
                 description: 'Обследование сердечно-сосудистой и дыхательной систем',
-                completed: this.userStats.stations.scores.examination !== undefined
+                icon: 'stethoscope'
             },
             {
                 id: 'history',
                 name: 'Сбор жалоб и анамнеза',
                 time: '8 минут',
                 description: 'Стандартизированный сбор информации у пациента',
-                completed: this.userStats.stations.scores.history !== undefined
+                icon: 'comment-medical'
             },
             {
                 id: 'prevention',
                 name: 'Профилактический осмотр',
                 time: '10 минут',
                 description: 'Профосмотр и рекомендации по профилактике',
-                completed: this.userStats.stations.scores.prevention !== undefined
+                icon: 'shield-virus'
             }
         ];
 
-        stationsGrid.innerHTML = stations.map(station => `
-            <div class="station-card ${station.completed ? 'station-completed' : 'station-not-started'}" data-station="${station.id}">
-                <div class="station-header">
-                    <div class="station-icon">
-                        <i class="fas fa-${this.getStationIcon(station.id)}"></i>
+        stationsGrid.innerHTML = stations.map(station => {
+            const isCompleted = this.userStats.stations.scores[station.id] !== undefined;
+            const practiceCount = this.userStats.stations.practiceCount[station.id] || 0;
+            
+            return `
+                <div class="station-card" data-station="${station.id}">
+                    <div class="station-header">
+                        <div class="station-icon">
+                            <i class="fas fa-${station.icon}"></i>
+                        </div>
+                        <div class="station-info">
+                            <h3>${station.name}</h3>
+                            <span class="station-time">${station.time}</span>
+                        </div>
+                        <span class="completion-badge ${isCompleted ? 'completed' : 'not-started'}">
+                            ${isCompleted ? 'Освоено' : 'Не начато'}
+                        </span>
                     </div>
-                    <div class="station-info">
-                        <h3>${station.name}</h3>
-                        <span class="station-time">${station.time}</span>
+                    <p>${station.description}</p>
+                    <div class="station-stats">
+                        <span>Отработано: ${practiceCount} раз</span>
+                        ${isCompleted ? `<span>Лучший результат: ${this.userStats.stations.scores[station.id]}/25</span>` : ''}
                     </div>
-                    <span class="completion-badge ${station.completed ? 'completed' : 'not-started'}">
-                        ${station.completed ? 'Освоено' : 'Не начато'}
-                    </span>
+                    <div class="station-actions">
+                        <button class="button primary practice-station">Тренировать</button>
+                        <button class="button secondary view-checklist">Чек-лист</button>
+                        <button class="button secondary view-video" style="background: var(--accent); border-color: var(--accent);">
+                            <i class="fas fa-video"></i> Видео
+                        </button>
+                    </div>
                 </div>
-                <p>${station.description}</p>
-                <div class="station-actions">
-                    <button class="button primary practice-station">Тренировать</button>
-                    <button class="button secondary view-checklist">Чек-лист</button>
-                </div>
-            </div>
-        `).join('');
-
-        // Re-attach event listeners
-        this.initializeStationPractice();
-        this.initializeChecklists();
+            `;
+        }).join('');
     }
 
-    getStationIcon(stationId) {
-        const icons = {
-            'cpr': 'heartbeat',
-            'emergency': 'ambulance',
-            'examination': 'stethoscope',
-            'history': 'comment-medical',
-            'prevention': 'shield-virus'
+    getStationById(stationId) {
+        const stations = {
+            'cpr': {
+                id: 'cpr',
+                name: 'СЛР',
+                time: '10 минут',
+                description: 'Сердечно-лёгочная реанимация взрослого и ребёнка',
+                icon: 'heartbeat',
+                checklist: [
+                    'Оценка безопасности места происшествия',
+                    'Проверка сознания пациента',
+                    'Вызов скорой помощи',
+                    'Открытие дыхательных путей',
+                    'Проверка дыхания',
+                    'Начало компрессий грудной клетки',
+                    'Искусственное дыхание',
+                    'Соотношение компрессий и вдохов 30:2',
+                    'Использование AED при наличии',
+                    'Продолжение до прибытия помощи'
+                ]
+            },
+            'emergency': {
+                id: 'emergency',
+                name: 'Неотложная помощь',
+                time: '15 минут',
+                description: 'Оказание неотложной помощи при острых состояниях',
+                icon: 'ambulance',
+                checklist: [
+                    'Быстрая оценка состояния пациента',
+                    'Проверка ABC (дыхательные пути, дыхание, кровообращение)',
+                    'Измерение жизненных показателей',
+                    'Сбор краткого анамнеза',
+                    'Выполнение неотложных вмешательств',
+                    'Мониторинг состояния',
+                    'Документирование действий'
+                ]
+            }
         };
-        return icons[stationId] || 'procedures';
+        return stations[stationId];
     }
 
-    initializeStationPractice() {
-        const practiceButtons = document.querySelectorAll('.practice-station');
-        const closeButton = document.getElementById('closePractice');
-        const startTimerButton = document.getElementById('startTimer');
-        const submitStationButton = document.getElementById('submitStation');
+    startStationPractice(stationId) {
+        const station = this.getStationById(stationId);
+        if (!station) return;
+
+        const practiceStationName = document.getElementById('practiceStationName');
+        const stationPractice = document.getElementById('stationPractice');
         
-        practiceButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const stationCard = e.target.closest('.station-card');
-                const stationType = stationCard.getAttribute('data-station');
-                this.openStationPractice(stationType);
-            });
-        });
+        if (practiceStationName) practiceStationName.textContent = `${station.name} - Практическая отработка`;
+        if (stationPractice) stationPractice.classList.remove('hidden');
         
-        closeButton.addEventListener('click', () => {
-            this.closeStationPractice();
-        });
+        this.renderChecklist(stationId);
+        this.resetStationTimer();
         
-        startTimerButton.addEventListener('click', () => {
-            this.startStationTimer();
-        });
+        const stationScore = document.getElementById('stationScore');
+        if (stationScore) stationScore.textContent = '0/25';
         
-        submitStationButton.addEventListener('click', () => {
-            this.submitStationPractice();
-        });
+        this.showToast(`Начата отработка станции: ${station.name}`, 'info');
     }
 
-    openStationPractice(stationType) {
-        const practiceContainer = document.getElementById('stationPractice');
-        const stationName = document.getElementById('practiceStationName');
-        const checklist = document.getElementById('stationChecklist');
-        
-        const stationNames = {
-            'cpr': 'СЛР - Сердечно-лёгочная реанимация',
-            'emergency': 'Неотложная помощь',
-            'examination': 'Физикальное обследование',
-            'history': 'Сбор жалоб и анамнеза',
-            'prevention': 'Профилактический осмотр'
-        };
-        
-        stationName.textContent = stationNames[stationType] || 'Практическая станция';
-        
-        const checklistItems = this.getChecklistForStation(stationType);
-        checklist.innerHTML = '';
-        
-        checklistItems.forEach((item, index) => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'checklist-item';
-            itemElement.innerHTML = `
+    renderChecklist(stationId) {
+        const station = this.getStationById(stationId);
+        if (!station) return;
+
+        const checklistContainer = document.getElementById('stationChecklist');
+        if (!checklistContainer) return;
+
+        checklistContainer.innerHTML = '';
+
+        station.checklist.forEach((item, index) => {
+            const checklistItem = document.createElement('div');
+            checklistItem.className = 'checklist-item';
+            checklistItem.innerHTML = `
                 <input type="checkbox" id="check-${index}">
                 <label for="check-${index}">${item}</label>
             `;
-            
-            const checkbox = itemElement.querySelector('input');
+
+            const checkbox = checklistItem.querySelector('input');
             checkbox.addEventListener('change', () => {
                 this.updateStationScore();
             });
-            
-            checklist.appendChild(itemElement);
+
+            checklistContainer.appendChild(checklistItem);
         });
-        
-        document.getElementById('stationTimer').textContent = '10:00';
-        document.getElementById('stationScore').textContent = '0/25';
-        
-        practiceContainer.classList.remove('hidden');
     }
 
-    getChecklistForStation(stationType) {
-        const checklists = {
-            'cpr': [
-                "Оценить безопасность места происшествия",
-                "Проверить сознание пациента",
-                "Вызвать скорую помощь",
-                "Открыть дыхательные пути",
-                "Проверить дыхание в течение 10 секунд",
-                "Начать компрессии грудной клетки (30:2)",
-                "Проводить СЛР до прибытия помощи"
-            ],
-            'emergency': [
-                "Быстрая оценка состояния пациента (ABCDE)",
-                "Обеспечить проходимость дыхательных путей",
-                "Оценить дыхание и оксигенацию",
-                "Оценить кровообращение",
-                "Измерить уровень глюкозы крови",
-                "Установить венозный доступ",
-                "Начать мониторинг жизненных функций"
-            ]
-        };
+    updateStationScore() {
+        const checkedItems = document.querySelectorAll('#stationChecklist input:checked').length;
+        const totalItems = document.querySelectorAll('#stationChecklist input').length;
+        const score = Math.round((checkedItems / totalItems) * 25);
         
-        return checklists[stationType] || ["Чек-лист для данной станции находится в разработке"];
-    }
-
-    closeStationPractice() {
-        document.getElementById('stationPractice').classList.add('hidden');
-        this.showToast('Тренировка станции завершена', 'info');
+        const stationScore = document.getElementById('stationScore');
+        if (stationScore) stationScore.textContent = `${score}/25`;
     }
 
     startStationTimer() {
         let timeLeft = 600;
         const timerDisplay = document.getElementById('stationTimer');
-        const startButton = document.getElementById('startTimer');
+        if (!timerDisplay) return;
         
-        startButton.disabled = true;
-        startButton.textContent = 'Таймер запущен';
-        
-        this.stationTimer = setInterval(() => {
-            timeLeft--;
+        const timer = setInterval(() => {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
-            if (timeLeft <= 0) {
-                clearInterval(this.stationTimer);
-                this.showToast('Время вышло!', 'error');
-                startButton.disabled = false;
-                startButton.textContent = 'Старт';
+            timeLeft--;
+            
+            if (timeLeft < 0) {
+                clearInterval(timer);
+                this.showToast('Время вышло!', 'warning');
             }
         }, 1000);
     }
 
-    updateStationScore() {
-        const checklistItems = document.querySelectorAll('.checklist-item');
-        let checkedCount = 0;
-        
-        checklistItems.forEach(item => {
-            if (item.querySelector('input').checked) {
-                checkedCount++;
-            }
-        });
-        
-        const totalItems = checklistItems.length;
-        const score = Math.round((checkedCount / totalItems) * 25);
-        
-        document.getElementById('stationScore').textContent = `${score}/25`;
+    resetStationTimer() {
+        const timerDisplay = document.getElementById('stationTimer');
+        if (timerDisplay) timerDisplay.textContent = '10:00';
+    }
+
+    closeStationPractice() {
+        const stationPractice = document.getElementById('stationPractice');
+        if (stationPractice) stationPractice.classList.add('hidden');
+        this.showToast('Практика станции завершена', 'info');
     }
 
     submitStationPractice() {
-        const score = parseInt(document.getElementById('stationScore').textContent.split('/')[0]);
-        const stationName = document.getElementById('practiceStationName').textContent.split(' - ')[0];
+        const stationScore = document.getElementById('stationScore');
+        const practiceStationName = document.getElementById('practiceStationName');
+        
+        if (!stationScore || !practiceStationName) return;
+        
+        const score = parseInt(stationScore.textContent.split('/')[0]);
+        const stationName = practiceStationName.textContent.split(' - ')[0];
         const stationId = this.getStationIdFromName(stationName);
         
-        // Update station completion
-        if (!this.userStats.stations.scores[stationId]) {
-            this.userStats.stations.completed++;
+        // Update stats
+        if (!this.userStats.stations.practiceCount[stationId]) {
+            this.userStats.stations.practiceCount[stationId] = 0;
+        }
+        this.userStats.stations.practiceCount[stationId]++;
+        
+        if (!this.userStats.stations.scores[stationId] || score > this.userStats.stations.scores[stationId]) {
+            if (!this.userStats.stations.scores[stationId]) {
+                this.userStats.stations.completed++;
+            }
             this.userStats.stations.scores[stationId] = score;
         }
         
         // Award XP
-        const xpEarned = score * 2;
+        const xpEarned = score + (this.userStats.stations.practiceCount[stationId] * 5);
         this.awardXP(xpEarned);
         
         this.showToast(`Станция "${stationName}" завершена! Набрано баллов: ${score}/25. Получено ${xpEarned} XP`, 'success');
@@ -866,648 +760,437 @@ class MedMateApp {
         this.updateAllDisplays();
     }
 
-    getStationIdFromName(name) {
-        const names = {
+    getStationIdFromName(stationName) {
+        const stationsMap = {
             'СЛР': 'cpr',
-            'Неотложная помощь': 'emergency',
-            'Физикальное обследование': 'examination',
-            'Сбор жалоб и анамнеза': 'history',
-            'Профилактический осмотр': 'prevention'
+            'Неотложная помощь': 'emergency'
         };
-        return names[name] || name.toLowerCase();
+        return stationsMap[stationName] || 'cpr';
     }
+
+    showTrainingVideo(stationId) {
+        const station = this.getStationById(stationId);
+        if (!station) return;
+
+        // Создаем модальное окно
+        const videoModal = document.createElement('div');
+        videoModal.className = 'modal';
+        videoModal.style.display = 'flex';
+        videoModal.innerHTML = `
+            <div class="modal-content" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h3>Обувающее видео: ${station.name}</h3>
+                    <button class="modal-close" id="videoModalClose">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="video-container">
+                        <div class="video-placeholder">
+                            <i class="fas fa-video" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+                            <p>Обучающее видео по станции "${station.name}"</p>
+                            <p class="video-description">Здесь будет размещено обучающее видео с демонстрацией правильного выполнения всех этапов станции.</p>
+                            <div class="video-info">
+                                <div class="video-duration"><i class="fas fa-clock"></i> Длительность: 5-10 минут</div>
+                                <div class="video-quality"><i class="fas fa-hd-video"></i> Качество: HD 1080p</div>
+                            </div>
+                            <button class="button primary" id="startVideo">
+                                <i class="fas fa-play"></i> Начать просмотр
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(videoModal);
+
+        // Добавляем обработчики закрытия
+        const closeModal = () => {
+            videoModal.remove();
+        };
+
+        // Закрытие по крестику
+        const closeBtn = document.getElementById('videoModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+
+        // Закрытие по клику вне окна
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                closeModal();
+            }
+        });
+
+        // Кнопка воспроизведения
+        const startVideoBtn = document.getElementById('startVideo');
+        if (startVideoBtn) {
+            startVideoBtn.addEventListener('click', () => {
+                this.showToast('Воспроизведение видео начато', 'info');
+            });
+        }
+
+        this.showToast(`Открыто видео для станции: ${station.name}`, 'info');
+    }
+
+    showChecklist(stationId) {
+        const station = this.getStationById(stationId);
+        if (!station) return;
+
+        // Создаем модальное окно
+        const checklistModal = document.createElement('div');
+        checklistModal.className = 'modal';
+        checklistModal.style.display = 'flex';
+        checklistModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Чек-лист: ${station.name}</h3>
+                    <button class="modal-close" id="checklistModalClose">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="checklist">
+                        ${station.checklist.map((item, index) => `
+                            <div class="checklist-item">
+                                <input type="checkbox" id="modal-check-${index}">
+                                <label for="modal-check-${index}">${item}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="button primary" id="closeChecklistBtn">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(checklistModal);
+
+        // Добавляем обработчики закрытия
+        const closeModal = () => {
+            checklistModal.remove();
+        };
+
+        // Закрытие по крестику
+        const closeBtn = document.getElementById('checklistModalClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+
+        // Закрытие по кнопке
+        const closeChecklistBtn = document.getElementById('closeChecklistBtn');
+        if (closeChecklistBtn) {
+            closeChecklistBtn.addEventListener('click', closeModal);
+        }
+
+        // Закрытие по клику вне окна
+        checklistModal.addEventListener('click', (e) => {
+            if (e.target === checklistModal) {
+                closeModal();
+            }
+        });
+
+        this.showToast(`Открыт чек-лист для станции: ${station.name}`, 'info');
+    }
+
+    // ========== ЗАДАЧИ ==========
 
     initializeTasks() {
-        this.initializeTaskSystem();
+        console.log('Initializing tasks...');
+        
+        const startTaskBtn = document.getElementById('startRandomTask');
+        const prevTaskStepBtn = document.getElementById('prevTaskStep');
+        const nextTaskStepBtn = document.getElementById('nextTaskStep');
+        const restartTaskBtn = document.getElementById('restartTask');
+
+        if (startTaskBtn) {
+            startTaskBtn.addEventListener('click', () => {
+                this.startRandomTask();
+            });
+        }
+
+        if (prevTaskStepBtn) {
+            prevTaskStepBtn.addEventListener('click', () => {
+                this.prevTaskStep();
+            });
+        }
+
+        if (nextTaskStepBtn) {
+            nextTaskStepBtn.addEventListener('click', () => {
+                this.nextTaskStep();
+            });
+        }
+
+        if (restartTaskBtn) {
+            restartTaskBtn.addEventListener('click', () => {
+                this.startRandomTask();
+            });
+        }
     }
 
-    initializeTaskSystem() {
-        const startTaskButton = document.getElementById('startRandomTask');
-        const prevTaskButton = document.getElementById('prevTaskStep');
-        const nextTaskButton = document.getElementById('nextTaskStep');
-        const restartTaskButton = document.getElementById('restartTask');
-        
-        startTaskButton.addEventListener('click', () => {
-            this.startRandomTask();
-        });
-        
-        prevTaskButton.addEventListener('click', () => {
-            this.previousTaskStep();
-        });
-        
-        nextTaskButton.addEventListener('click', () => {
-            this.nextTaskStep();
-        });
-        
-        restartTaskButton.addEventListener('click', () => {
-            this.startRandomTask();
-        });
+    startRandomTask() {
+        const tasks = this.generateSampleTasks();
+        const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
         
         this.taskState = {
-            currentTask: null,
-            currentStep: 0,
+            currentTask: randomTask,
+            currentStep: 1,
             userAnswers: [],
             score: 0
         };
+
+        const taskProgress = document.getElementById('taskProgress');
+        const taskContent = document.getElementById('taskContent');
+        const taskResults = document.getElementById('taskResults');
+
+        if (taskProgress) taskProgress.classList.remove('hidden');
+        if (taskContent) taskContent.classList.remove('hidden');
+        if (taskResults) taskResults.classList.add('hidden');
+
+        this.showCurrentTaskStep();
+        this.showToast('Начата новая ситуационная задача', 'info');
     }
 
-    getSampleTasks() {
+    generateSampleTasks() {
         return [
             {
                 id: 1,
-                specialty: "therapy",
-                scenario: "Пациент 45 лет, жалуется на боли за грудиной давящего характера с иррадиацией в левую руку, длительностью 20 минут. АД 150/90 мм рт.ст., ЧСС 95 уд/мин. В анамнезе - артериальная гипертензия, курение.",
+                title: 'Пациент с болью в груди',
+                description: 'Пациент 55 лет обратился с жалобами на давящую боль за грудиной, иррадиирующую в левую руку, длительностью 30 минут. Сопутствующие симптомы: одышка, холодный пот.',
                 steps: [
                     {
                         step: 1,
-                        question: "Какие лабораторные и инструментальные обследования необходимо назначить в первую очередь?",
+                        question: 'Какой первоначальный диагностический алгоритм следует применить?',
                         options: [
-                            "ЭКГ, тропонины, общий анализ крови, глюкоза крови",
-                            "Рентгенография органов грудной клетки, УЗИ брюшной полости",
-                            "МРТ сердца, коронароангиография",
-                            "Суточное мониторирование ЭКГ, велоэргометрия"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "При подозрении на ОКС необходимо немедленно выполнить ЭКГ и определить уровень тропонинов для подтверждения или исключения инфаркта миокарда."
-                    },
-                    {
-                        step: 2,
-                        question: "На основании результатов (ЭКГ: подъем сегмента ST в отведениях V1-V4) какой предварительный диагноз наиболее вероятен?",
-                        options: [
-                            "Острый инфаркт миокарда передней стенки левого желудочка",
-                            "Нестабильная стенокардия",
-                            "Перикардит",
-                            "Расслаивающая аневризма аорты"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "Подъем сегмента ST в передних отведениях характерен для острого инфаркта миокарда передней стенки левого желудочка."
-                    },
-                    {
-                        step: 3,
-                        question: "Какая дифференциальная диагностика требуется?",
-                        options: [
-                            "Исключить расслаивающую аневризму аорты, ТЭЛА, перикардит",
-                            "Исключить пневмонию, плеврит",
-                            "Исключить язвенную болезнь желудка",
-                            "Исключить остеохондроз грудного отдела позвоночника"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "Необходимо исключить жизнеугрожающие состояния, которые могут имитировать инфаркт миокарда."
-                    },
-                    {
-                        step: 4,
-                        question: "Какое лечение необходимо назначить в первые минуты?",
-                        options: [
-                            "Аспирин 250-500 мг разжевать, клопидогрел 300 мг, гепарин, морфин при боли",
-                            "Нитроглицерин сублингвально, метопролол",
-                            "Фуросемид, эналаприл",
-                            "Антибиотики широкого спектра действия"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "В первые минуты при ОКС с подъемом ST показаны дезагреганты, антикоагулянты и обезболивающая терапия."
-                    }
-                ]
-            },
-            {
-                id: 2,
-                specialty: "surgery",
-                scenario: "Пациент 35 лет, доставлен в приемное отделение с жалобами на интенсивные боли в правой подвздошной области, тошноту, однократную рвоту. Симптомы развились в течение 6 часов. Температура 37.8°C.",
-                steps: [
-                    {
-                        step: 1,
-                        question: "Какое обследование необходимо провести в первую очередь?",
-                        options: [
-                            "Пальпация живота, анализ крови, УЗИ брюшной полости",
-                            "КТ органов брюшной полости с контрастированием",
-                            "Рентгенография органов грудной клетки",
-                            "ЭКГ, консультация кардиолога"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "При подозрении на острый аппендицит начинают с физикального обследования и базовых лабораторных и инструментальных методов."
-                    },
-                    {
-                        step: 2,
-                        question: "При положительном симптоме Щеткина-Блюмберга какой диагноз наиболее вероятен?",
-                        options: [
-                            "Острый аппендицит",
-                            "Почечная колика",
-                            "Острый холецистит",
-                            "Внематочная беременность"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "Симптом Щеткина-Блюмберга характерен для перитонита, который часто развивается при остром аппендиците."
-                    },
-                    {
-                        step: 3,
-                        question: "Какие дополнительные методы диагностики наиболее информативны?",
-                        options: [
-                            "УЗИ органов брюшной полости, общий анализ крови",
-                            "МРТ брюшной полости",
-                            "Колоноскопия",
-                            "ЭКГ"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "УЗИ позволяет визуализировать аппендикс, а анализ крови показывает воспалительные изменения."
-                    },
-                    {
-                        step: 4,
-                        question: "Какое лечение показано?",
-                        options: [
-                            "Экстренная аппендэктомия",
-                            "Консервативная терапия антибиотиками",
-                            "Наблюдение в динамике",
-                            "Лапароскопическая диагностика"
-                        ],
-                        correctAnswer: 0,
-                        explanation: "При подтвержденном остром аппендиците показана экстренная операция."
+                            { text: 'Немедленное проведение ЭКГ', correct: true },
+                            { text: 'Рентгенография грудной клетки', correct: false }
+                        ]
                     }
                 ]
             }
         ];
     }
 
-    startRandomTask() {
-        const taskProgress = document.getElementById('taskProgress');
-        const taskContent = document.getElementById('taskContent');
-        const taskResults = document.getElementById('taskResults');
-        
-        taskProgress.classList.remove('hidden');
-        taskContent.classList.remove('hidden');
-        taskResults.classList.add('hidden');
-        
-        const tasks = this.getSampleTasks();
-        this.taskState = {
-            currentStep: 0,
-            userAnswers: new Array(4).fill(null),
-            score: 0,
-            currentTask: tasks[Math.floor(Math.random() * tasks.length)]
-        };
-        
-        this.updateTaskProgress();
-        this.displayTaskStep();
-        
-        this.showToast('Ситуационная задача начата', 'info');
+    showCurrentTaskStep() {
+        // Заглушка для демонстрации
+        this.showToast('Функционал задач в разработке', 'info');
     }
 
-    updateTaskProgress() {
-        const taskSteps = document.querySelectorAll('.task-step');
-        taskSteps.forEach((step, index) => {
-            if (index === this.taskState.currentStep) {
-                step.classList.add('active');
-            } else {
-                step.classList.remove('active');
-            }
-        });
-    }
-
-    displayTaskStep() {
-        const taskDescription = document.getElementById('taskDescription');
-        const taskQuestion = document.getElementById('taskQuestion');
-        const taskOptions = document.getElementById('taskOptions');
-        const prevButton = document.getElementById('prevTaskStep');
-        const nextButton = document.getElementById('nextTaskStep');
-        
-        if (this.taskState.currentStep === 0) {
-            taskDescription.textContent = this.taskState.currentTask.scenario;
-        }
-        
-        const currentStep = this.taskState.currentTask.steps[this.taskState.currentStep];
-        taskQuestion.textContent = currentStep.question;
-        
-        taskOptions.innerHTML = '';
-        currentStep.options.forEach((option, index) => {
-            const optionElement = document.createElement('div');
-            optionElement.className = 'option';
-            if (this.taskState.userAnswers[this.taskState.currentStep] === index) {
-                optionElement.classList.add('selected');
-            }
-            optionElement.innerHTML = `
-                <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-                <span class="option-text">${option}</span>
-            `;
-            
-            optionElement.addEventListener('click', () => {
-                this.selectTaskOption(optionElement, index);
-            });
-            
-            taskOptions.appendChild(optionElement);
-        });
-        
-        prevButton.disabled = this.taskState.currentStep === 0;
-        
-        if (this.taskState.currentStep === this.taskState.currentTask.steps.length - 1) {
-            nextButton.textContent = 'Завершить задачу';
-        } else {
-            nextButton.textContent = 'Далее';
-        }
-        
-        nextButton.disabled = this.taskState.userAnswers[this.taskState.currentStep] === null;
-    }
-
-    selectTaskOption(optionElement, optionIndex) {
-        const options = document.querySelectorAll('#taskOptions .option');
-        
-        options.forEach(opt => opt.classList.remove('selected'));
-        
-        optionElement.classList.add('selected');
-        
-        this.taskState.userAnswers[this.taskState.currentStep] = optionIndex;
-        
-        document.getElementById('nextTaskStep').disabled = false;
-    }
-
-    previousTaskStep() {
-        if (this.taskState.currentStep > 0) {
-            this.taskState.currentStep--;
-            this.updateTaskProgress();
-            this.displayTaskStep();
-        }
+    prevTaskStep() {
+        this.showToast('Функционал задач в разработке', 'info');
     }
 
     nextTaskStep() {
-        if (this.taskState.userAnswers[this.taskState.currentStep] === null) {
-            this.showToast('Пожалуйста, выберите ответ', 'error');
-            return;
-        }
-
-        const currentStepData = this.taskState.currentTask.steps[this.taskState.currentStep];
-        if (this.taskState.userAnswers[this.taskState.currentStep] === currentStepData.correctAnswer) {
-            this.taskState.score++;
-        }
-
-        if (this.taskState.currentStep < this.taskState.currentTask.steps.length - 1) {
-            this.taskState.currentStep++;
-            this.updateTaskProgress();
-            this.displayTaskStep();
-        } else {
-            this.finishTask();
-        }
+        this.showToast('Функционал задач в разработке', 'info');
     }
 
-    finishTask() {
-        const score = this.taskState.score;
-        const total = this.taskState.currentTask.steps.length;
-        const percentage = Math.round((score / total) * 100);
-        
-        document.getElementById('taskCorrectAnswers').textContent = score;
-        document.getElementById('taskTotalSteps').textContent = total;
-        document.getElementById('taskSuccessRate').textContent = `${percentage}%`;
-        
-        const xpEarned = score * 20;
-        document.getElementById('taskEarnedXP').textContent = xpEarned;
-        
-        document.getElementById('taskProgress').classList.add('hidden');
-        document.getElementById('taskContent').classList.add('hidden');
-        document.getElementById('taskResults').classList.remove('hidden');
-        
-        this.awardXP(xpEarned);
-        this.userStats.tasks.completed++;
-        this.userStats.tasks.correct += score;
-        
-        this.addProgressRecord('task', score, total);
-        
-        this.showToast(`Задача завершена! Правильных ответов: ${score}/${total} (${percentage}%). Получено ${xpEarned} XP`, 'success');
-        this.updateAllDisplays();
-    }
+    // ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
 
     initializeQuickActions() {
-        const actionCards = document.querySelectorAll('.action-card');
-        const dailyChallengeBtn = document.getElementById('startDailyChallenge');
-        const downloadButtons = document.querySelectorAll('.download-btn');
+        console.log('Initializing quick actions...');
         
-        actionCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const action = card.getAttribute('data-action');
+        document.addEventListener('click', (e) => {
+            const actionCard = e.target.closest('.action-card');
+            if (actionCard) {
+                const action = actionCard.getAttribute('data-action');
                 this.handleQuickAction(action);
-            });
-        });
-        
-        dailyChallengeBtn.addEventListener('click', () => {
-            this.startDailyChallenge();
-        });
-        
-        downloadButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const file = e.target.getAttribute('data-file');
-                this.downloadMaterial(file);
-            });
-        });
-    }
-
-    handleQuickAction(action) {
-        const actionHandlers = {
-            'random-theory': () => {
-                document.querySelector('.tab[data-tab="theory"]').click();
-                setTimeout(() => document.getElementById('startRandomTest').click(), 500);
-            },
-            'cpr-training': () => {
-                document.querySelector('.tab[data-tab="stations"]').click();
-                setTimeout(() => {
-                    const cprStation = document.querySelector('.station-card[data-station="cpr"] .practice-station');
-                    if (cprStation) cprStation.click();
-                }, 500);
-            },
-            'emergency': () => {
-                document.querySelector('.tab[data-tab="stations"]').click();
-                setTimeout(() => {
-                    const emergencyStation = document.querySelector('.station-card[data-station="emergency"] .practice-station');
-                    if (emergencyStation) emergencyStation.click();
-                }, 500);
-            },
-            'checklists': () => {
-                this.showToast('Все чек-листы доступны в разделе "Материалы"', 'info');
-                document.querySelector('.tab[data-tab="materials"]').click();
             }
-        };
-        
-        if (actionHandlers[action]) {
-            actionHandlers[action]();
+        });
+
+        const startDailyChallengeBtn = document.getElementById('startDailyChallenge');
+        if (startDailyChallengeBtn) {
+            startDailyChallengeBtn.addEventListener('click', () => {
+                this.startDailyChallenge();
+            });
         }
     }
 
-    startDailyChallenge() {
-        document.querySelector('.tab[data-tab="theory"]').click();
-        setTimeout(() => document.getElementById('startRandomTest').click(), 500);
-        this.showToast('Ежедневное задание начато! Пройдите 10 вопросов.', 'info');
-    }
-
-    downloadMaterial(file) {
-        this.showToast(`Материал "${file}" будет скачан`, 'info');
-        // В реальном приложении здесь будет загрузка файла
+    initializeMobileFeatures() {
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', () => {
+                this.toggleMobileNav();
+            });
+        }
     }
 
     initializeProfile() {
         const profileBtn = document.getElementById('profileBtn');
         const closeProfileModal = document.getElementById('closeProfileModal');
-        const profileModal = document.getElementById('profileModal');
-        
-        profileBtn.addEventListener('click', () => {
-            profileModal.classList.remove('hidden');
-        });
-        
-        closeProfileModal.addEventListener('click', () => {
-            profileModal.classList.add('hidden');
-        });
-        
-        profileModal.addEventListener('click', (e) => {
-            if (e.target === profileModal) {
-                profileModal.classList.add('hidden');
-            }
-        });
+
+        if (profileBtn) {
+            profileBtn.addEventListener('click', () => {
+                this.showProfileModal();
+            });
+        }
+
+        if (closeProfileModal) {
+            closeProfileModal.addEventListener('click', () => {
+                this.hideProfileModal();
+            });
+        }
     }
 
-    initializeMobileFeatures() {
-        this.initializeTouchEvents();
-        this.initializeSwipeGestures();
-        this.initializeMobileNav();
-    }
-
-    initializeMobileNav() {
-        const mobileToggle = document.getElementById('mobileNavToggle');
-        const sidebar = document.getElementById('sidebar');
-        
-        mobileToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-open');
-        });
-        
-        // Close sidebar when clicking on a link
-        const navLinks = document.querySelectorAll('.nav .tab');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                sidebar.classList.remove('mobile-open');
+    initializeExamProgress() {
+        const steps = document.querySelectorAll('.step');
+        steps.forEach(step => {
+            step.addEventListener('click', () => {
+                const stepNumber = parseInt(step.getAttribute('data-step'));
+                this.showToast(`Переход к этапу ${stepNumber}`, 'info');
             });
         });
     }
 
-    initializeTouchEvents() {
-        document.addEventListener('touchstart', function() {}, {passive: true});
+    handleQuickAction(action) {
+        const actions = {
+            'random-theory': () => this.startRandomTest(),
+            'cpr-training': () => this.startStationPractice('cpr'),
+            'emergency': () => this.startStationPractice('emergency'),
+            'checklists': () => this.showChecklist('cpr')
+        };
         
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-    }
-
-    initializeSwipeGestures() {
-        let startX = 0;
-        let endX = 0;
-        
-        document.addEventListener('touchstart', (e) => {
-            startX = e.changedTouches[0].screenX;
-        });
-
-        document.addEventListener('touchend', (e) => {
-            endX = e.changedTouches[0].screenX;
-            this.handleSwipe(startX, endX);
-        });
-    }
-
-    handleSwipe(startX, endX) {
-        const diff = endX - startX;
-        const minSwipeDistance = 50;
-        
-        if (Math.abs(diff) > minSwipeDistance) {
-            const currentTab = document.querySelector('.tab.active');
-            const tabs = Array.from(document.querySelectorAll('.tab'));
-            const currentIndex = tabs.indexOf(currentTab);
-            
-            if (diff > 0 && currentIndex > 0) {
-                tabs[currentIndex - 1].click();
-            } else if (diff < 0 && currentIndex < tabs.length - 1) {
-                tabs[currentIndex + 1].click();
-            }
+        if (actions[action]) {
+            actions[action]();
+        } else {
+            this.showToast('Функция в разработке', 'info');
         }
     }
 
-    awardXP(amount) {
-        this.currentXP += amount;
-        
-        const xpForNextLevel = this.currentLevel * 100;
+    startDailyChallenge() {
+        this.startRandomTest();
+    }
+
+    toggleMobileNav() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('mobile-open');
+        }
+    }
+
+    showProfileModal() {
+        const profileModal = document.getElementById('profileModal');
+        if (profileModal) {
+            profileModal.classList.remove('hidden');
+            this.updateProfileModal();
+        }
+    }
+
+    hideProfileModal() {
+        const profileModal = document.getElementById('profileModal');
+        if (profileModal) {
+            profileModal.classList.add('hidden');
+        }
+    }
+
+    updateProfileModal() {
+        // Заглушка для обновления модального окна профиля
+    }
+
+    awardXP(xp) {
+        this.currentXP += xp;
+        this.checkLevelUp();
+    }
+
+    checkLevelUp() {
+        const xpForNextLevel = this.currentLevel * 1000;
         if (this.currentXP >= xpForNextLevel) {
             this.currentLevel++;
-            this.currentXP = this.currentXP - xpForNextLevel;
             this.showToast(`Поздравляем! Вы достигли уровня ${this.currentLevel}!`, 'success');
         }
-        
-        this.saveProgress();
-    }
-
-    checkDailyChallenge() {
-        const today = new Date().toDateString();
-        if (this.dailyProgress.lastCompleted !== today) {
-            this.dailyProgress.questions = 0;
-            this.dailyProgress.completed = false;
-            this.dailyProgress.lastCompleted = null;
-        }
-        this.updateDailyProgress();
     }
 
     updateDailyProgress() {
-        const progress = Math.min(this.dailyProgress.questions, 10);
-        const percentage = (progress / 10) * 100;
+        const progress = Math.min((this.dailyProgress.questions / 10) * 100, 100);
+        const dailyProgressElement = document.getElementById('dailyProgress');
+        const dailyProgressText = document.getElementById('dailyProgressText');
         
-        document.getElementById('dailyProgress').style.width = `${percentage}%`;
-        document.getElementById('dailyProgressText').textContent = `${progress}/10`;
+        if (dailyProgressElement) dailyProgressElement.style.width = `${progress}%`;
+        if (dailyProgressText) dailyProgressText.textContent = `${this.dailyProgress.questions}/10`;
         
-        if (progress >= 10 && !this.dailyProgress.completed) {
+        if (this.dailyProgress.questions >= 10 && !this.dailyProgress.completed) {
             this.dailyProgress.completed = true;
-            this.dailyProgress.lastCompleted = new Date().toDateString();
+            this.dailyProgress.lastCompleted = new Date().toISOString().split('T')[0];
             this.awardXP(100);
             this.showToast('Ежедневное задание выполнено! +100 XP', 'success');
         }
     }
 
-    addProgressRecord(type, score, total) {
-        const record = {
-            date: new Date().toISOString(),
-            type: type,
-            score: score,
-            total: total,
-            xp: type === 'theory' ? score * 10 : score * 20
-        };
-        
-        this.progressHistory.push(record);
-        
-        // Keep only last 30 records
-        if (this.progressHistory.length > 30) {
-            this.progressHistory = this.progressHistory.slice(-30);
-        }
-        
+    updateAllDisplays() {
+        this.updateStatsDisplay();
+        this.updateDashboardDisplay();
         this.saveProgress();
     }
 
-    updateProgressChart() {
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        
-        // Prepare data for last 7 days
-        const last7Days = this.getLast7DaysProgress();
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: last7Days.map(day => day.date),
-                datasets: [{
-                    label: 'Вопросы решены',
-                    data: last7Days.map(day => day.questions),
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Количество вопросов'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Дата'
-                        }
-                    }
-                }
-            }
-        });
+    updateStatsDisplay() {
+        const xpValue = document.getElementById('xpValue');
+        const levelValue = document.getElementById('levelValue');
+        const statsTheories = document.getElementById('statsTheories');
+        const statsStations = document.getElementById('statsStations');
+        const statsTasks = document.getElementById('statsTasks');
+
+        if (xpValue) xpValue.textContent = this.currentXP;
+        if (levelValue) levelValue.textContent = this.currentLevel;
+        if (statsTheories) statsTheories.textContent = `${this.userStats.theories.completed}/${this.userStats.theories.total}`;
+        if (statsStations) statsStations.textContent = `${this.userStats.stations.completed}/${this.userStats.stations.total}`;
+        if (statsTasks) statsTasks.textContent = `${this.userStats.tasks.completed}/${this.userStats.tasks.total}`;
     }
 
-    getLast7DaysProgress() {
-        const result = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-            
-            const dayProgress = this.progressHistory.filter(record => {
-                const recordDate = new Date(record.date).toDateString();
-                return recordDate === date.toDateString();
-            });
-            
-            const questions = dayProgress.reduce((sum, record) => sum + record.total, 0);
-            
-            result.push({
-                date: dateStr,
-                questions: questions
-            });
+    updateDashboardDisplay() {
+        const dashboardTheories = document.getElementById('dashboardTheories');
+        const completedTheories = document.getElementById('completedTheories');
+        const progressTheories = document.getElementById('progressTheories');
+        const completedStations = document.getElementById('completedStations');
+        const progressStations = document.getElementById('progressStations');
+        const dashboardTasks = document.getElementById('dashboardTasks');
+        const completedTasks = document.getElementById('completedTasks');
+        const progressTasks = document.getElementById('progressTasks');
+        const theoryCount = document.getElementById('theoryCount');
+        const tasksCount = document.getElementById('tasksCount');
+
+        if (dashboardTheories) dashboardTheories.textContent = `${this.userStats.theories.total} вопросов из банка ФМЗА и МедикТест`;
+        if (completedTheories) completedTheories.textContent = this.userStats.theories.completed;
+        if (progressTheories) progressTheories.textContent = `${Math.round((this.userStats.theories.completed / this.userStats.theories.total) * 100)}%`;
+        if (completedStations) completedStations.textContent = this.userStats.stations.completed;
+        if (progressStations) progressStations.textContent = `${Math.round((this.userStats.stations.completed / this.userStats.stations.total) * 100)}%`;
+        if (dashboardTasks) dashboardTasks.textContent = `${this.userStats.tasks.total} клинических задач с решениями`;
+        if (completedTasks) completedTasks.textContent = this.userStats.tasks.completed;
+        if (progressTasks) progressTasks.textContent = `${Math.round((this.userStats.tasks.completed / this.userStats.tasks.total) * 100)}%`;
+        if (theoryCount) theoryCount.textContent = this.userStats.theories.total;
+        if (tasksCount) tasksCount.textContent = this.userStats.tasks.total;
+    }
+
+    updateProgressTab() {
+        // Заглушка для обновления вкладки прогресса
+    }
+
+    checkDailyChallenge() {
+        const today = new Date().toISOString().split('T')[0];
+        if (this.dailyProgress.lastCompleted !== today) {
+            this.dailyProgress.questions = 0;
+            this.dailyProgress.completed = false;
         }
-        return result;
+        this.updateDailyProgress();
     }
 
     showToast(message, type = 'info') {
         const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
-        
-        const icons = {
-            success: 'fa-check-circle',
-            error: 'fa-times-circle',
-            info: 'fa-info-circle'
-        };
-
         toast.innerHTML = `
-            <i class="fas ${icons[type]}"></i>
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
             <span>${message}</span>
         `;
-
+        
         toastContainer.appendChild(toast);
-
-        const hideTime = window.innerWidth <= 768 ? 3000 : 5000;
         
         setTimeout(() => {
-            toast.style.animation = window.innerWidth <= 768 ? 'slideInDown 0.3s ease reverse' : 'slideInRight 0.3s ease reverse';
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 300);
-        }, hideTime);
-    }
-
-    initializeChecklists() {
-        const viewChecklistButtons = document.querySelectorAll('.view-checklist');
-        
-        viewChecklistButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const stationCard = e.target.closest('.station-card');
-                const stationType = stationCard.getAttribute('data-station');
-                this.showChecklistModal(stationType);
-            });
-        });
-    }
-
-    showChecklistModal(stationType) {
-        this.showToast(`Чек-лист для станции "${stationType}" открыт`, 'info');
+            toast.remove();
+        }, 5000);
     }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing app...');
     const app = new MedMateApp();
-    
-    // Add service worker for PWA capabilities (optional)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(console.error);
-    }
-});
-
-// Add orientation change handler
-window.addEventListener('orientationchange', function() {
-    setTimeout(() => {
-        window.scrollTo(0, 0);
-    }, 100);
 });
