@@ -4,763 +4,691 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MedMate — Подготовка к аккредитации</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <div class="toast-container" id="toastContainer"></div>
-    <div class="mobile-nav-toggle" id="mobileNavToggle">
-        <i class="fas fa-bars"></i>
-    </div>
-    
-    <div class="container">
-        <header class="header">
-            <div class="brand">
-                <div class="logo"><i class="fas fa-stethoscope"></i></div>
-                <div class="title">
-                    <h1>MedMate</h1>
-                    <p>Подготовка к первичной аккредитации</p>
-                </div>
+    <!-- ===== SCREEN 1: WELCOME ===== -->
+    <div class="screen" id="welcomeScreen">
+        <div class="container text-center">
+            <div class="welcome-logo animate-fadeIn">
+                <i class="fas fa-stethoscope"></i>
             </div>
-            <div class="controls">
-                <div class="user-type-selector">
-                    <select id="userType">
-                        <option value="nurse">Медбрат/Медсестра (3 курс)</option>
-                        <option value="doctor">Врач (6 курс)</option>
-                    </select>
-                </div>
-                <span class="xp"><i class="fas fa-star"></i> <span id="xpValue">0</span> XP</span>
-                <span class="level"><i class="fas fa-level-up-alt"></i> Уровень <span id="levelValue">1</span></span>
-                <button class="button profile-btn" id="profileBtn"><i class="fas fa-user-circle"></i> Профиль</button>
-            </div>
-        </header>
+            
+            <h1 class="display-1 mb-3">MedMate</h1>
+            <p class="body-large text-white mb-8">Интеллектуальная подготовка к первичной аккредитации</p>
 
-        <div class="exam-progress">
-            <div class="progress-steps">
-                <div class="step active" data-step="1">
-                    <div class="step-number">1</div>
-                    <span>Тесты</span>
+            <div class="benefits-grid">
+                <div class="benefit-item animate-fadeIn" style="animation-delay: 0.1s">
+                    <div class="benefit-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="text-white">
+                        <div class="body-medium">10,000+ вопросов</div>
+                        <div class="caption">Актуальная база ФМЗА и МедикТест</div>
+                    </div>
                 </div>
-                <div class="step" data-step="2">
-                    <div class="step-number">2</div>
-                    <span>Станции</span>
+                
+                <div class="benefit-item animate-fadeIn" style="animation-delay: 0.2s">
+                    <div class="benefit-icon">
+                        <i class="fas fa-procedures"></i>
+                    </div>
+                    <div class="text-white">
+                        <div class="body-medium">20 практических станций</div>
+                        <div class="caption">Реальные сценарии ОСКЭ с чек-листами</div>
+                    </div>
                 </div>
-                <div class="step" data-step="3">
-                    <div class="step-number">3</div>
-                    <span>Задачи</span>
+                
+                <div class="benefit-item animate-fadeIn" style="animation-delay: 0.3s">
+                    <div class="benefit-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="text-white">
+                        <div class="body-medium">Персональная аналитика</div>
+                        <div class="caption">Умные рекомендации и прогресс</div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="animate-fadeIn" style="animation-delay: 0.4s">
+                <button class="btn btn-primary btn-lg btn-full" id="startFreeButton">
+                    <i class="fas fa-arrow-right"></i>
+                    Далее
+                </button>
             </div>
         </div>
+    </div>
 
-        <div class="grid">
-            <aside class="sidebar" id="sidebar">
-                <nav class="nav">
-                    <div class="tab active" data-tab="dashboard">
-                        <i class="fas fa-home"></i> Главная
-                    </div>
-                    <div class="tab" data-tab="theory">
-                        <i class="fas fa-book-medical"></i> Тесты <span class="badge" id="theoryCount">0</span>
-                    </div>
-                    <div class="tab" data-tab="stations">
-                        <i class="fas fa-diagnoses"></i> Станции <span class="badge">5</span>
-                    </div>
-                    <div class="tab" data-tab="tasks">
-                        <i class="fas fa-tasks"></i> Задачи <span class="badge" id="tasksCount">0</span>
-                    </div>
-                    <div class="tab" data-tab="progress">
-                        <i class="fas fa-chart-line"></i> Прогресс
-                    </div>
-                    <div class="tab" data-tab="materials">
-                        <i class="fas fa-file-alt"></i> Материалы
-                    </div>
-                </nav>
-                
-                <div class="quick-stats">
-                    <h4>Быстрая статистика</h4>
-                    <div class="stat-item">
-                        <span>Пройдено тестов:</span>
-                        <strong id="statsTheories">0/0</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Отработано станций:</span>
-                        <strong id="statsStations">0/5</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Решено задач:</span>
-                        <strong id="statsTasks">0/0</strong>
-                    </div>
-                </div>
-            </aside>
+    <!-- ===== SCREEN 2: VERSION SELECTION ===== -->
+    <div class="screen hidden" id="versionScreen">
+        <div class="container">
+            <div class="text-center mb-6 text-white">
+                <h2 class="heading-2 mb-2">Выберите версию</h2>
+                <p class="body-medium">Начните подготовку с подходящим тарифом</p>
+            </div>
 
-            <main class="main">
-                <!-- Главная панель -->
-                <section id="dashboard" class="tab-content active">
-                    <div class="welcome-section">
-                        <h2>Добро пожаловать в систему подготовки!</h2>
-                        <p>Выберите этап подготовки к аккредитации</p>
-                    </div>
-                    
-                    <div class="exam-cards">
-                        <div class="exam-card large" data-exam="theory">
-                            <div class="exam-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                            <div class="exam-info">
-                                <h3>Этап 1: Тестирование</h3>
-                                <p id="dashboardTheories">0 вопросов из банка ФМЗА и МедикТест</p>
-                                <div class="exam-stats">
-                                    <span class="stat"><i class="fas fa-check-circle"></i> <span id="completedTheories">0</span> пройдено</span>
-                                    <span class="stat"><i class="fas fa-clock"></i> <span id="progressTheories">0%</span> готово</span>
+            <div class="version-cards">
+                <div class="card card-primary animate-fadeIn" style="animation-delay: 0.1s">
+                    <div class="card-content" style="padding: var(--space-6)">
+                        <h3 class="heading-3 mb-3 text-dark">Пробная версия</h3>
+                        <p class="body-medium text-gray mb-4">Бесплатный доступ к основным функциям</p>
+                        
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
                                 </div>
-                            </div>
-                            <button class="button primary start-exam">Начать подготовку</button>
-                        </div>
-
-                        <div class="exam-card large" data-exam="stations">
-                            <div class="exam-icon">
-                                <i class="fas fa-procedures"></i>
-                            </div>
-                            <div class="exam-info">
-                                <h3>Этап 2: Практические станции</h3>
-                                <p>5 обязательных станций с чек-листами</p>
-                                <div class="exam-stats">
-                                    <span class="stat"><i class="fas fa-check-circle"></i> <span id="completedStations">0</span> освоено</span>
-                                    <span class="stat"><i class="fas fa-clock"></i> <span id="progressStations">0%</span> готово</span>
+                                <span class="body-small text-dark">50 вопросов в неделю</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
                                 </div>
-                            </div>
-                            <button class="button primary start-exam">Начать отработку</button>
-                        </div>
-
-                        <div class="exam-card large" data-exam="tasks">
-                            <div class="exam-icon">
-                                <i class="fas fa-tasks"></i>
-                            </div>
-                            <div class="exam-info">
-                                <h3>Этап 3: Ситуационные задачи</h3>
-                                <p id="dashboardTasks">0 клинических задач с решениями</p>
-                                <div class="exam-stats">
-                                    <span class="stat"><i class="fas fa-check-circle"></i> <span id="completedTasks">0</span> решено</span>
-                                    <span class="stat"><i class="fas fa-clock"></i> <span id="progressTasks">0%</span> готово</span>
+                                <span class="body-small text-dark">3 ситуационные задачи</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
                                 </div>
-                            </div>
-                            <button class="button primary start-exam">Начать решение</button>
-                        </div>
-                    </div>
+                                <span class="body-small text-dark">1 практическая станция</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon cross">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                                <span class="body-small text-gray">Расширенные объяснения</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon cross">
+                                    <i class="fas fa-times"></i>
+                                </div>
+                                <span class="body-small text-gray">Все станции ОСКЭ</span>
+                            </li>
+                        </ul>
 
-                    <div class="daily-challenge">
-                        <div class="challenge-header">
-                            <h3><i class="fas fa-calendar-day"></i> Ежедневное задание</h3>
-                            <span class="challenge-reward">+100 XP</span>
-                        </div>
-                        <p>Пройдите 10 вопросов из любого раздела сегодня</p>
-                        <div class="challenge-progress">
-                            <div class="progress">
-                                <div class="progress-bar" id="dailyProgress" style="width: 0%"></div>
-                            </div>
-                            <span id="dailyProgressText">0/10</span>
-                        </div>
-                        <button class="button primary" id="startDailyChallenge">Начать ежедневное задание</button>
-                    </div>
-
-                    <div class="quick-actions">
-                        <h3>Быстрый доступ</h3>
-                        <div class="action-cards">
-                            <div class="action-card" data-action="random-theory">
-                                <i class="fas fa-random"></i>
-                                <span>Случайные вопросы</span>
-                            </div>
-                            <div class="action-card" data-action="cpr-training">
-                                <i class="fas fa-heartbeat"></i>
-                                <span>Отработка СЛР</span>
-                            </div>
-                            <div class="action-card" data-action="emergency">
-                                <i class="fas fa-ambulance"></i>
-                                <span>Неотложная помощь</span>
-                            </div>
-                            <div class="action-card" data-action="checklists">
-                                <i class="fas fa-clipboard-list"></i>
-                                <span>Чек-листы</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Тесты -->
-                <section id="theory" class="tab-content">
-                    <div class="section-header">
-                        <h2>Подготовка к тестированию</h2>
-                        <p>Банк вопросов из ФМЗА, МедикТест и актуальных источников</p>
-                    </div>
-
-                    <div class="theory-controls">
-                        <div class="filter-group">
-                            <label>Дисциплина:</label>
-                            <select id="disciplineFilter">
-                                <option value="all">Все дисциплины</option>
-                                <option value="therapy">Терапия</option>
-                                <option value="surgery">Хирургия</option>
-                                <option value="pediatrics">Педиатрия</option>
-                                <option value="obstetrics">Акушерство и гинекология</option>
-                                <option value="neurology">Неврология</option>
-                                <option value="psychiatry">Психиатрия</option>
-                                <option value="pharmacology">Фармакология</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Сложность:</label>
-                            <select id="difficultyFilter">
-                                <option value="all">Любая сложность</option>
-                                <option value="easy">Легкая</option>
-                                <option value="medium">Средняя</option>
-                                <option value="hard">Сложная</option>
-                            </select>
-                        </div>
-                        <button class="button primary" id="startRandomTest">
-                            <i class="fas fa-random"></i> Случайный тест (20 вопросов)
+                        <button class="btn btn-secondary btn-full mt-4" data-version="trial">
+                            Начать бесплатно
                         </button>
                     </div>
+                </div>
 
-                    <div class="quiz-container hidden" id="quizContainer">
-                        <div class="quiz-header">
-                            <div class="quiz-progress">
-                                <span>Вопрос <span id="currentQuestion">1</span> из <span id="totalQuestions">20</span></span>
-                                <div class="progress">
-                                    <div class="progress-bar" id="quizProgress" style="width: 5%"></div>
-                                </div>
-                            </div>
-                            <div class="quiz-timer">
-                                <i class="fas fa-clock"></i>
-                                <span id="quizTimer">30:00</span>
-                            </div>
-                        </div>
-
-                        <div class="quiz-card">
-                            <div class="question-header">
-                                <h4 class="question" id="quizQuestion"></h4>
-                                <span class="difficulty medium" id="questionDifficulty">Средняя</span>
-                            </div>
-                            
-                            <div class="options" id="quizOptions">
-                                <!-- Options will be populated by JavaScript -->
-                            </div>
-
-                            <div class="quiz-actions">
-                                <button class="button secondary" id="skipQuestion">Пропустить</button>
-                                <button class="button primary" id="nextQuestion" disabled>Следующий вопрос</button>
-                            </div>
-
-                            <div class="quiz-explanation hidden" id="quizExplanation">
-                                <h5><i class="fas fa-lightbulb"></i> Объяснение:</h5>
-                                <p id="explanationText"></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quiz-results hidden" id="quizResults">
-                        <div class="results-card">
-                            <h3>Результаты теста</h3>
-                            <div class="results-stats">
-                                <div class="result-stat">
-                                    <span class="stat-value" id="correctAnswers">0</span>
-                                    <span class="stat-label">Правильных ответов</span>
-                                </div>
-                                <div class="result-stat">
-                                    <span class="stat-value" id="totalQuestionsResult">0</span>
-                                    <span class="stat-label">Всего вопросов</span>
-                                </div>
-                                <div class="result-stat">
-                                    <span class="stat-value" id="successRate">0%</span>
-                                    <span class="stat-label">Успешность</span>
-                                </div>
-                            </div>
-                            <div class="results-xp">
-                                <i class="fas fa-star"></i>
-                                <span>Получено <strong id="earnedXP">0</strong> XP</span>
-                            </div>
-                            <button class="button primary" id="restartQuiz">Пройти еще раз</button>
-                        </div>
-                    </div>
-
-                    <div class="theory-stats">
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-brain"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Общая эффективность</h3>
-                                <div class="progress">
-                                    <div class="progress-bar" id="efficiencyProgress" style="width: 0%"></div>
-                                </div>
-                                <span class="stat-value" id="efficiencyValue">0%</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-bolt"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Скорость решения</h3>
-                                <span class="stat-value" id="speedValue">0 сек/вопрос</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Лучшая серия</h3>
-                                <span class="stat-value" id="bestStreak">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Станции -->
-                <section id="stations" class="tab-content">
-                    <div class="section-header">
-                        <h2>Практические станции</h2>
-                        <p>Отработка навыков по чек-листам аккредитации</p>
-                    </div>
-
-                    <div class="stations-grid" id="stationsGrid">
-                        <!-- Станции будут заполнены JavaScript -->
-                    </div>
-
-                    <div class="station-practice hidden" id="stationPractice">
-                        <div class="practice-header">
-                            <h3 id="practiceStationName">СЛР - Сердечно-лёгочная реанимация</h3>
-                            <button class="button secondary" id="closePractice">Закрыть</button>
+                <div class="card card-premium animate-fadeIn" style="animation-delay: 0.2s">
+                    <div class="card-content" style="padding: var(--space-6)">
+                        <div class="badge badge-premium mb-3">
+                            <i class="fas fa-crown"></i>
+                            Премиум
                         </div>
                         
-                        <div class="practice-content">
-                            <div class="checklist-section">
-                                <h4>Чек-лист выполнения</h4>
-                                <div class="checklist" id="stationChecklist">
-                                    <!-- Checklist items will be populated by JavaScript -->
+                        <h3 class="heading-3 mb-2 text-dark">Полная версия</h3>
+                        <p class="body-medium text-gray mb-3">Полный доступ ко всем материалам</p>
+                        
+                        <div class="price-tag mb-4">555₽</div>
+                        
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
                                 </div>
-                            </div>
-                            
-                            <div class="practice-tools">
-                                <div class="timer-section">
-                                    <h4>Таймер выполнения</h4>
-                                    <div class="timer-display" id="stationTimer">10:00</div>
-                                    <div class="timer-controls">
-                                        <button class="button" id="startTimer">Старт</button>
-                                        <button class="button secondary" id="resetTimer">Сброс</button>
-                                    </div>
+                                <span class="body-small text-dark">10,000+ вопросов</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
                                 </div>
-                                
-                                <div class="scoring-section">
-                                    <h4>Оценка выполнения</h4>
-                                    <div class="score-display">
-                                        <span>Баллы: </span>
-                                        <strong id="stationScore">0/25</strong>
-                                    </div>
-                                    <button class="button primary" id="submitStation">Завершить</button>
+                                <span class="body-small text-dark">Все станции ОСКЭ</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
                                 </div>
-                            </div>
+                                <span class="body-small text-dark">Подробные объяснения</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <span class="body-small text-dark">Расширенная статистика</span>
+                            </li>
+                            <li class="feature-item">
+                                <div class="feature-icon check">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <span class="body-small text-dark">Персональные рекомендации</span>
+                            </li>
+                        </ul>
+
+                        <button class="btn btn-primary btn-full mt-4" data-version="premium">
+                            <i class="fas fa-bolt"></i>
+                            Купить сейчас
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary btn-full mt-4" id="backToWelcomeButton">
+                <i class="fas fa-arrow-left"></i>
+                Назад
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== SCREEN 3: COURSE SELECTION ===== -->
+    <div class="screen hidden" id="courseScreen">
+        <div class="container">
+            <div class="text-center mb-6 text-white">
+                <h2 class="heading-2 mb-2">Выберите курс</h2>
+                <p class="body-medium">Подготовка адаптируется под вашу специальность</p>
+            </div>
+
+            <div class="course-cards">
+                <div class="card course-card animate-fadeIn" style="animation-delay: 0.1s" data-course="nurse">
+                    <div class="text-center">
+                        <div class="course-icon">
+                            <i class="fas fa-user-nurse"></i>
+                        </div>
+                        <h3 class="heading-3 mb-2 text-dark">Медсестра/Медбрат</h3>
+                        <p class="body-medium text-gray mb-3">3 курс - подготовка к первичной аккредитации</p>
+                        <div class="body-small text-gray mb-4">
+                            <div><i class="fas fa-book"></i> 1,200 вопросов</div>
+                            <div><i class="fas fa-clipboard-list"></i> 5 станций ОСКЭ</div>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- Задачи -->
-                <section id="tasks" class="tab-content">
-                    <div class="section-header">
-                        <h2>Ситуационные задачи</h2>
-                        <p>Клинические задачи с последовательным решением</p>
-                    </div>
-
-                    <div class="tasks-container">
-                        <div class="task-filters">
-                            <div class="filter-group">
-                                <label>Специальность:</label>
-                                <select id="taskSpecialty">
-                                    <option value="all">Все специальности</option>
-                                    <option value="therapy">Терапия</option>
-                                    <option value="surgery">Хирургия</option>
-                                    <option value="pediatrics">Педиатрия</option>
-                                    <option value="obstetrics">Акушерство и гинекология</option>
-                                </select>
-                            </div>
-                            <button class="button primary" id="startRandomTask">
-                                <i class="fas fa-random"></i> Случайная задача
-                            </button>
+                <div class="card course-card animate-fadeIn" style="animation-delay: 0.2s" data-course="doctor">
+                    <div class="text-center">
+                        <div class="course-icon">
+                            <i class="fas fa-user-md"></i>
                         </div>
-
-                        <div class="task-progress hidden" id="taskProgress">
-                            <div class="progress-steps">
-                                <div class="task-step active" data-step="1">Обследование</div>
-                                <div class="task-step" data-step="2">Диагностика</div>
-                                <div class="task-step" data-step="3">Диф. диагностика</div>
-                                <div class="task-step" data-step="4">Лечение</div>
-                            </div>
-                        </div>
-
-                        <div class="task-content hidden" id="taskContent">
-                            <div class="task-scenario">
-                                <h4>Клинический случай</h4>
-                                <p id="taskDescription"></p>
-                            </div>
-
-                            <div class="task-question">
-                                <h4 id="taskQuestion"></h4>
-                                <div class="task-options" id="taskOptions">
-                                    <!-- Options will be populated by JavaScript -->
-                                </div>
-                            </div>
-
-                            <div class="task-actions">
-                                <button class="button secondary" id="prevTaskStep" disabled>Назад</button>
-                                <button class="button primary" id="nextTaskStep">Далее</button>
-                            </div>
-                        </div>
-
-                        <div class="task-results hidden" id="taskResults">
-                            <div class="results-card">
-                                <h3>Результаты решения задачи</h3>
-                                <div class="results-stats">
-                                    <div class="result-stat">
-                                        <span class="stat-value" id="taskCorrectAnswers">0</span>
-                                        <span class="stat-label">Правильных ответов</span>
-                                    </div>
-                                    <div class="result-stat">
-                                        <span class="stat-value" id="taskTotalSteps">0</span>
-                                        <span class="stat-label">Всего этапов</span>
-                                    </div>
-                                    <div class="result-stat">
-                                        <span class="stat-value" id="taskSuccessRate">0%</span>
-                                        <span class="stat-label">Успешность</span>
-                                    </div>
-                                </div>
-                                <div class="results-xp">
-                                    <i class="fas fa-star"></i>
-                                    <span>Получено <strong id="taskEarnedXP">0</strong> XP</span>
-                                </div>
-                                <button class="button primary" id="restartTask">Решить еще задачу</button>
-                            </div>
-                        </div>
-
-                        <div class="tasks-stats">
-                            <h4>Статистика по задачам</h4>
-                            <div class="stats-grid">
-                                <div class="mini-stat">
-                                    <span class="stat-value" id="solvedTasks">0</span>
-                                    <span class="stat-label">Решено задач</span>
-                                </div>
-                                <div class="mini-stat">
-                                    <span class="stat-value" id="taskAccuracy">0%</span>
-                                    <span class="stat-label">Правильных ответов</span>
-                                </div>
-                                <div class="mini-stat">
-                                    <span class="stat-value" id="averageScore">0</span>
-                                    <span class="stat-label">Средний балл</span>
-                                </div>
-                            </div>
+                        <h3 class="heading-3 mb-2 text-dark">Врач</h3>
+                        <p class="body-medium text-gray mb-3">6 курс - углубленная подготовка</p>
+                        <div class="body-small text-gray mb-4">
+                            <div><i class="fas fa-book"></i> 1,800 вопросов</div>
+                            <div><i class="fas fa-clipboard-list"></i> 8 станций ОСКЭ</div>
                         </div>
                     </div>
-                </section>
+                </div>
+            </div>
 
-                <!-- Прогресс -->
-                <section id="progress" class="tab-content">
-                    <div class="section-header">
-                        <h2>Ваш прогресс</h2>
-                        <p>Отслеживайте ваши достижения и результаты</p>
-                    </div>
+            <button class="btn btn-primary btn-full mt-6" id="startLearningButton" disabled>
+                Начать обучение
+            </button>
 
-                    <div class="progress-content">
-                        <div class="progress-overview">
-                            <div class="overview-card">
-                                <div class="overview-icon">
-                                    <i class="fas fa-trophy"></i>
-                                </div>
-                                <div class="overview-info">
-                                    <h3>Общий прогресс</h3>
-                                    <div class="overview-progress">
-                                        <div class="progress">
-                                            <div class="progress-bar" id="overallProgress" style="width: 0%"></div>
-                                        </div>
-                                        <span id="overallProgressText">0%</span>
-                                    </div>
-                                </div>
-                            </div>
+            <button class="btn btn-secondary btn-full mt-4" id="backToVersionButton">
+                <i class="fas fa-arrow-left"></i>
+                Назад
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APPLICATION ===== -->
+    <div class="app-container hidden" id="mainApp">
+        <!-- Header -->
+        <div class="nav-header">
+            <div class="container">
+                <div style="display: flex; align-items: center; justify-content: between; gap: var(--space-3)">
+                    <div style="display: flex; align-items: center; gap: var(--space-3)">
+                        <div style="width: 32px; height: 32px; background: var(--gradient-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white;">
+                            <i class="fas fa-stethoscope"></i>
                         </div>
-
-                        <div class="progress-stats">
-                            <div class="progress-stat-card">
-                                <div class="progress-stat-icon">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <div class="progress-stat-info">
-                                    <h3>Тестирование</h3>
-                                    <div class="progress-stat-numbers">
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTheoriesCompleted">0</span>
-                                            <span class="label">Пройдено вопросов</span>
-                                        </div>
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTheoriesAccuracy">0%</span>
-                                            <span class="label">Точность</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="progress-stat-card">
-                                <div class="progress-stat-icon">
-                                    <i class="fas fa-procedures"></i>
-                                </div>
-                                <div class="progress-stat-info">
-                                    <h3>Практические станции</h3>
-                                    <div class="progress-stat-numbers">
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressStationsCompleted">0</span>
-                                            <span class="label">Освоено станций</span>
-                                        </div>
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressStationsScore">0</span>
-                                            <span class="label">Средний балл</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="progress-stat-card">
-                                <div class="progress-stat-icon">
-                                    <i class="fas fa-tasks"></i>
-                                </div>
-                                <div class="progress-stat-info">
-                                    <h3>Ситуационные задачи</h3>
-                                    <div class="progress-stat-numbers">
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTasksCompleted">0</span>
-                                            <span class="label">Решено задач</span>
-                                        </div>
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTasksAccuracy">0%</span>
-                                            <span class="label">Точность</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="progress-chart">
-                            <h3>Прогресс по дням</h3>
-                            <div class="chart-container">
-                                <canvas id="progressChart"></canvas>
-                            </div>
-                        </div>
-
-                        <div class="achievements-section">
-                            <h3>Достижения</h3>
-                            <div class="achievements-grid">
-                                <div class="achievement" data-achievement="first-test">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-graduation-cap"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Первый тест</h4>
-                                        <p>Пройдите ваш первый тест</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-                                <div class="achievement" data-achievement="cpr-master">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-heart"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Мастер СЛР</h4>
-                                        <p>Освойте станцию СЛР на 100%</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-                                <div class="achievement" data-achievement="theory-expert">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-brain"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Эксперт теории</h4>
-                                        <p>Пройдите 1000 вопросов</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-                                <div class="achievement" data-achievement="task-master">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-tasks"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Мастер задач</h4>
-                                        <p>Решите 50 ситуационных задач</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-                            </div>
+                        <div>
+                            <div class="body-small" style="font-weight: 600; color: var(--gray-900);">MedMate</div>
+                            <div class="caption">Подготовка к аккредитации</div>
                         </div>
                     </div>
-                </section>
+                    
+                    <div style="display: flex; align-items: center; gap: var(--space-2); margin-left: auto;">
+                        <div class="badge" style="background: var(--success-light); color: var(--gray-800);">
+                            <i class="fas fa-star"></i>
+                            <span id="headerXP">0</span> XP
+                        </div>
+                        <div class="badge" style="background: var(--primary-light); color: white;">
+                            Ур. <span id="headerLevel">1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <!-- Материалы -->
-                <section id="materials" class="tab-content">
-                    <div class="section-header">
-                        <h2>Учебные материалы</h2>
-                        <p>Чек-листы, алгоритмы и справочные материалы</p>
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-tab" data-tab="theory">
+                <i class="fas fa-brain"></i>
+                <span>Тесты</span>
+            </button>
+            <button class="nav-tab" data-tab="stations">
+                <i class="fas fa-procedures"></i>
+                <span>Станции</span>
+            </button>
+            <button class="nav-tab" data-tab="tasks">
+                <i class="fas fa-tasks"></i>
+                <span>Задачи</span>
+            </button>
+            <button class="nav-tab" data-tab="progress">
+                <i class="fas fa-chart-line"></i>
+                <span>Прогресс</span>
+            </button>
+            <button class="nav-tab" data-tab="profile">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-section">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="welcome-banner">
+                    <h2 class="heading-2 text-white mb-2" id="welcomeMessage">Добрый день!</h2>
+                    <p class="body-medium text-white">Готовьтесь к аккредитации эффективно</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stat-value heading-3 text-dark" id="statsQuestions">0</div>
+                        <div class="stat-label body-small text-gray">Вопросов пройдено</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-value heading-3 text-dark" id="statsAccuracy">0%</div>
+                        <div class="stat-label body-small text-gray">Правильных ответов</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value heading-3 text-dark" id="statsTime">0ч</div>
+                        <div class="stat-label body-small text-gray">Времени обучения</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-value heading-3 text-dark" id="statsLevel">1</div>
+                        <div class="stat-label body-small text-gray">Уровень</div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="card action-card" onclick="startActivity('theory')">
+                        <div class="action-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="body-medium text-dark" style="font-weight: 600;">Тестирование</div>
+                            <div class="body-small text-gray">Проверьте свои знания</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray"></i>
                     </div>
 
-                    <div class="materials-grid">
-                        <div class="material-card">
-                            <div class="material-icon">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <h3>Чек-листы станций</h3>
-                            <p>Полные чек-листы для всех практических станций аккредитации</p>
-                            <button class="button primary download-btn" data-file="checklists">Скачать PDF</button>
+                    <div class="card action-card" onclick="startActivity('stations')">
+                        <div class="action-icon">
+                            <i class="fas fa-procedures"></i>
                         </div>
-
-                        <div class="material-card">
-                            <div class="material-icon">
-                                <i class="fas fa-book-medical"></i>
-                            </div>
-                            <h3>Фармакология</h3>
-                            <p>Основные препараты, дозировки, показания и противопоказания</p>
-                            <button class="button primary download-btn" data-file="pharmacology">Скачать PDF</button>
+                        <div style="flex: 1;">
+                            <div class="body-medium text-dark" style="font-weight: 600;">Практические станции</div>
+                            <div class="body-small text-gray">Отработка навыков ОСКЭ</div>
                         </div>
+                        <i class="fas fa-chevron-right text-gray"></i>
+                    </div>
 
-                        <div class="material-card">
-                            <div class="material-icon">
+                    <div class="card action-card" onclick="startActivity('tasks')">
+                        <div class="action-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="body-medium text-dark" style="font-weight: 600;">Ситуационные задачи</div>
+                            <div class="body-small text-gray">Решение клинических кейсов</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray"></i>
+                    </div>
+
+                    <div class="card action-card" onclick="startActivity('mistakes')">
+                        <div class="action-icon" style="background: var(--error-main);">
+                            <i class="fas fa-redo"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="body-medium text-dark" style="font-weight: 600;">Повторить ошибки</div>
+                            <div class="body-small text-gray" id="mistakesCount">0 вопросов для повторения</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray"></i>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: var(--space-5);">
+                    <h3 class="heading-3 mb-3 text-dark">Сегодняшние задачи</h3>
+                    <div class="body-medium text-gray mb-4">Рекомендуем выполнить для прогресса</div>
+                    
+                    <div style="display: grid; gap: var(--space-3);">
+                        <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--gray-50); border-radius: var(--radius-md);">
+                            <div style="width: 24px; height: 24px; background: var(--primary-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="body-small text-dark">Пройти 10 вопросов по терапии</div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--gray-50); border-radius: var(--radius-md);">
+                            <div style="width: 24px; height: 24px; background: var(--secondary-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
                                 <i class="fas fa-procedures"></i>
                             </div>
-                            <h3>Алгоритмы действий</h3>
-                            <p>Стандартные операционные процедуры для неотложных состояний</p>
-                            <button class="button primary download-btn" data-file="algorithms">Скачать PDF</button>
+                            <div class="body-small text-dark">Отработать станцию СЛР</div>
                         </div>
-
-                        <div class="material-card">
-                            <div class="material-icon">
-                                <i class="fas fa-heartbeat"></i>
+                        
+                        <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--gray-50); border-radius: var(--radius-md);">
+                            <div style="width: 24px; height: 24px; background: var(--success-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+                                <i class="fas fa-redo"></i>
                             </div>
-                            <h3>Протоколы СЛР</h3>
-                            <p>Актуальные протоколы сердечно-лёгочной реанимации</p>
-                            <button class="button primary download-btn" data-file="cpr">Скачать PDF</button>
-                        </div>
-
-                        <div class="material-card">
-                            <div class="material-icon">
-                                <i class="fas fa-pills"></i>
-                            </div>
-                            <h3>Клинические рекомендации</h3>
-                            <p>Официальные клинические рекомендации по основным заболеваниям</p>
-                            <button class="button primary download-btn" data-file="guidelines">Скачать PDF</button>
-                        </div>
-
-                        <div class="material-card">
-                            <div class="material-icon">
-                                <i class="fas fa-stethoscope"></i>
-                            </div>
-                            <h3>Дифференциальная диагностика</h3>
-                            <p>Алгоритмы дифференциальной диагностики частых симптомов</p>
-                            <button class="button primary download-btn" data-file="diagnosis">Скачать PDF</button>
-                        </div>
-                    </div>
-                </section>
-            </main>
-        </div>
-
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>MedMate</h4>
-                    <p>Система подготовки к первичной аккредитации медицинских работников</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Источники</h4>
-                    <ul>
-                        <li>ФМЗА</li>
-                        <li>МедикТест</li>
-                        <li>Аккредитационные чек-листы</li>
-                        <li>Клинические рекомендации</li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Поддержка</h4>
-                    <p>По вопросам работы системы обращайтесь в техническую поддержку</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                © 2025 MedMate. Все права защищены. На основе реального опыта выпускников.
-            </div>
-        </footer>
-    </div>
-
-    <!-- Модальное окно профиля -->
-    <div class="modal hidden" id="profileModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Профиль пользователя</h3>
-                <button class="modal-close" id="closeProfileModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="profile-modal-content">
-                    <div class="profile-modal-avatar">
-                        <i class="fas fa-user-md"></i>
-                    </div>
-                    <div class="profile-modal-info">
-                        <h4 id="modalProfileName">Доктор Иванов А.С.</h4>
-                        <p id="modalProfileRole">Студент 6 курса лечебного факультета</p>
-                        <div class="profile-modal-stats">
-                            <div class="modal-stat">
-                                <span class="modal-stat-value" id="modalLevel">1</span>
-                                <span class="modal-stat-label">Уровень</span>
-                            </div>
-                            <div class="modal-stat">
-                                <span class="modal-stat-value" id="modalXP">0</span>
-                                <span class="modal-stat-label">Опыт</span>
-                            </div>
-                            <div class="modal-stat">
-                                <span class="modal-stat-value" id="modalDays">1</span>
-                                <span class="modal-stat-label">Дней в системе</span>
-                            </div>
+                            <div class="body-small text-dark">Повторить 5 вопросов с ошибками</div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="profile-modal-achievements">
-                    <h4>Достижения</h4>
-                    <div class="achievements-list">
-                        <div class="achievement-item locked">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>Первый тест</span>
-                        </div>
-                        <div class="achievement-item locked">
-                            <i class="fas fa-heart"></i>
-                            <span>Мастер СЛР</span>
-                        </div>
-                        <div class="achievement-item locked">
-                            <i class="fas fa-brain"></i>
-                            <span>1000 вопросов</span>
-                        </div>
-                        <div class="achievement-item locked">
+            </div>
+
+            <!-- Theory/Testing Tab -->
+            <div class="tab-content" id="theory">
+                <h2 class="heading-2 mb-4 text-dark">Тестирование</h2>
+                <p class="body-medium text-gray mb-6">Выберите раздел для подготовки</p>
+
+                <div class="section-grid" id="theorySections">
+                    <!-- Sections will be loaded dynamically -->
+                </div>
+
+                <!-- Quiz Container (hidden by default) -->
+                <div class="quiz-container hidden" id="quizContainer">
+                    <div class="quiz-header">
+                        <div class="quiz-timer" id="quizTimer">02:00</div>
+                        <div class="body-small text-gray">Вопрос <span id="currentQuestion">1</span> из <span id="totalQuestions">10</span></div>
+                    </div>
+
+                    <div class="quiz-question" id="quizQuestion">
+                        Загрузка вопроса...
+                    </div>
+
+                    <div class="quiz-options" id="quizOptions">
+                        <!-- Options will be loaded dynamically -->
+                    </div>
+
+                    <div class="quiz-navigation">
+                        <button class="btn btn-secondary" onclick="markForReview()">
+                            <i class="fas fa-flag"></i>
+                            Отметить
+                        </button>
+                        <button class="btn btn-primary" onclick="nextQuestion()">
+                            Далее
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiz Results (hidden by default) -->
+                <div class="quiz-results hidden" id="quizResults">
+                    <div class="card" style="padding: var(--space-6); text-align: center;">
+                        <div class="stat-icon" style="margin: 0 auto var(--space-4);">
                             <i class="fas fa-trophy"></i>
-                            <span>Аккредитованный специалист</span>
                         </div>
+                        <h3 class="heading-3 mb-3 text-dark">Тест завершен!</h3>
+                        <div class="body-large text-primary mb-2" id="quizScore">0/0</div>
+                        <div class="body-medium text-gray mb-4" id="quizPercentage">0%</div>
+                        <div class="body-small text-gray mb-6" id="quizTimeSpent">Время: 0:00</div>
+                        
+                        <div style="display: grid; gap: var(--space-3); margin-bottom: var(--space-6);">
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <span class="body-medium text-dark">Правильные ответы:</span>
+                                <span class="body-medium text-success" id="correctAnswers">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <span class="body-medium text-dark">Неправильные ответы:</span>
+                                <span class="body-medium text-error" id="wrongAnswers">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <span class="body-medium text-dark">Получено XP:</span>
+                                <span class="body-medium text-primary" id="earnedXP">0</span>
+                            </div>
+                        </div>
+
+                        <div class="quiz-navigation">
+                            <button class="btn btn-secondary" onclick="showAnswerReview()">
+                                <i class="fas fa-list"></i>
+                                Обзор ответов
+                            </button>
+                            <button class="btn btn-primary" onclick="restartQuiz()">
+                                <i class="fas fa-redo"></i>
+                                Пройти еще раз
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answer Review (hidden by default) -->
+                <div class="answer-review hidden" id="answerReview">
+                    <div class="card" style="padding: var(--space-6);">
+                        <h3 class="heading-3 mb-4 text-dark">Обзор ответов</h3>
+                        <div id="reviewQuestions">
+                            <!-- Review content will be loaded here -->
+                        </div>
+                        <button class="btn btn-primary btn-full mt-4" onclick="closeReview()">
+                            <i class="fas fa-arrow-left"></i>
+                            Назад к результатам
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stations Tab -->
+            <div class="tab-content" id="stations">
+                <h2 class="heading-2 mb-4 text-dark">Практические станции</h2>
+                <p class="body-medium text-gray mb-6">Отработка навыков для ОСКЭ</p>
+
+                <div class="section-grid" id="stationsGrid">
+                    <!-- Stations will be loaded dynamically -->
+                </div>
+
+                <!-- Station Practice (hidden by default) -->
+                <div class="station-practice hidden" id="stationPractice">
+                    <div class="card" style="padding: var(--space-6);">
+                        <div class="quiz-header">
+                            <h3 class="heading-3" id="stationTitle">Название станции</h3>
+                            <div class="body-small text-gray">Время: <span id="stationTimer">10:00</span></div>
+                        </div>
+                        
+                        <div class="station-content" style="margin: var(--space-6) 0;">
+                            <div class="body-large text-dark mb-4" id="stationDescription">
+                                Описание станции...
+                            </div>
+                            
+                            <div class="checklist" id="stationChecklist">
+                                <!-- Checklist items will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div class="quiz-navigation">
+                            <button class="btn btn-secondary" onclick="resetStation()">
+                                <i class="fas fa-redo"></i>
+                                Начать заново
+                            </button>
+                            <button class="btn btn-primary" onclick="completeStation()">
+                                <i class="fas fa-check"></i>
+                                Завершить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div class="tab-content" id="tasks">
+                <h2 class="heading-2 mb-4 text-dark">Ситуационные задачи</h2>
+                <p class="body-medium text-gray mb-6">Решение клинических кейсов</p>
+
+                <div class="section-grid" id="tasksGrid">
+                    <!-- Tasks will be loaded dynamically -->
+                </div>
+
+                <!-- Task Practice (hidden by default) -->
+                <div class="task-practice hidden" id="taskPractice">
+                    <div class="card" style="padding: var(--space-6);">
+                        <h3 class="heading-3 mb-4 text-dark" id="taskTitle">Название задачи</h3>
+                        
+                        <div class="task-scenario" style="margin-bottom: var(--space-6);">
+                            <div class="body-large text-dark mb-3">Клиническая ситуация:</div>
+                            <div class="body-medium text-gray mb-4" id="taskScenario">
+                                Описание ситуации...
+                            </div>
+                        </div>
+
+                        <div class="task-questions" id="taskQuestions">
+                            <!-- Questions will be loaded here -->
+                        </div>
+
+                        <div class="quiz-navigation">
+                            <button class="btn btn-secondary" onclick="resetTask()">
+                                <i class="fas fa-redo"></i>
+                                Начать заново
+                            </button>
+                            <button class="btn btn-primary" onclick="checkTaskAnswers()">
+                                <i class="fas fa-check"></i>
+                                Проверить ответы
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div class="tab-content" id="progress">
+                <h2 class="heading-2 mb-4 text-dark">Ваш прогресс</h2>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <h3 class="heading-3 text-dark">Общий прогресс</h3>
+                        <div class="body-medium text-primary" id="overallProgress">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="card mb-6" style="padding: var(--space-5);">
+                    <h3 class="heading-3 mb-4 text-dark">Динамика результатов</h3>
+                    <div style="height: 200px; background: var(--gray-100); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--gray-500);" id="progressChart">
+                        График прогресса
+                    </div>
+                </div>
+
+                <div class="card" style="padding: var(--space-5);">
+                    <h3 class="heading-3 mb-4 text-dark">Слабые зоны</h3>
+                    <div class="weak-topics" id="weakTopics">
+                        <!-- Weak topics will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="card mt-6" style="padding: var(--space-5);">
+                    <h3 class="heading-3 mb-4 text-dark">Достижения</h3>
+                    <div class="achievements-grid" id="achievementsGrid">
+                        <!-- Achievements will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div class="tab-content" id="profile">
+                <h2 class="heading-2 mb-4 text-dark">Профиль</h2>
+
+                <div class="card mb-6" style="padding: var(--space-5);">
+                    <div style="display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4);">
+                        <div style="width: 64px; height: 64px; background: var(--gradient-primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="heading-3 text-dark" id="profileName">Студент</div>
+                            <div class="body-small text-gray" id="profileCourse">Курс не выбран</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+                        <div>
+                            <div class="body-small text-gray">Уровень</div>
+                            <div class="body-medium text-dark" id="profileLevel">1</div>
+                        </div>
+                        <div>
+                            <div class="body-small text-gray">Опыт</div>
+                            <div class="body-medium text-dark" id="profileXP">0 XP</div>
+                        </div>
+                        <div>
+                            <div class="body-small text-gray">Версия</div>
+                            <div class="body-medium text-dark" id="profileVersion">Пробная</div>
+                        </div>
+                        <div>
+                            <div class="body-small text-gray">Активность</div>
+                            <div class="body-medium text-dark" id="profileActivity">0 дней</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: var(--space-5);">
+                    <h3 class="heading-3 mb-4 text-dark">Настройки</h3>
+                    
+                    <div style="display: grid; gap: var(--space-4);">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div>
+                                <div class="body-medium text-dark">Уведомления</div>
+                                <div class="body-small text-gray">Напоминания о занятиях</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notificationsToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div>
+                                <div class="body-medium text-dark">Темная тема</div>
+                                <div class="body-small text-gray">Переключить оформление</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="darkModeToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div>
+                                <div class="body-medium text-dark">Звуковые эффекты</div>
+                                <div class="body-small text-gray">Звуки правильных/неправильных ответов</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="soundsToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: var(--space-6); display: grid; gap: var(--space-3);">
+                        <button class="btn btn-secondary btn-full" onclick="exportProgress()">
+                            <i class="fas fa-download"></i>
+                            Экспорт прогресса
+                        </button>
+                        <button class="btn btn-secondary btn-full" onclick="resetProgress()">
+                            <i class="fas fa-trash"></i>
+                            Сбросить прогресс
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
+    <script src="database.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
