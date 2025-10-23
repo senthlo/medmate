@@ -1,1196 +1,1093 @@
+// ===== ОСНОВНОЕ ПРИЛОЖЕНИЕ =====
 class MedMateApp {
     constructor() {
-        this.currentXP = 0;
-        this.currentLevel = 1;
-        this.userType = 'doctor';
-        this.userStats = {
-            theories: { 
-                completed: 0, 
-                total: 1800, 
-                correct: 0,
+        this.state = {
+            version: 'trial',
+            course: null,
+            userStats: {
+                totalQuestions: 0,
+                correctAnswers: 0,
+                testsCompleted: 0,
+                stationsCompleted: 0,
+                tasksCompleted: 0,
                 timeSpent: 0,
+                currentStreak: 0,
                 bestStreak: 0,
-                currentStreak: 0
+                mistakes: [],
+                xp: 0,
+                level: 1,
+                perfectStations: 0,
+                achievements: [],
+                lastActive: new Date().toISOString(),
+                activityDays: new Set()
             },
-            stations: { 
-                completed: 0, 
-                total: 5, 
-                scores: {},
-                practiceCount: {}
-            },
-            tasks: { 
-                completed: 0, 
-                total: 150, 
-                correct: 0,
-                averageScore: 0
+            progressHistory: [],
+            currentQuiz: null,
+            currentStation: null,
+            currentTask: null,
+            settings: {
+                notifications: true,
+                darkMode: false,
+                sounds: true
             }
         };
-        this.achievements = {
-            'first-test': false,
-            'cpr-master': false,
-            'theory-expert': false,
-            'task-master': false
+
+        this.screens = {
+            welcome: document.getElementById('welcomeScreen'),
+            version: document.getElementById('versionScreen'),
+            course: document.getElementById('courseScreen'),
+            main: document.getElementById('mainApp')
         };
-        this.dailyProgress = {
-            questions: 0,
-            completed: false,
-            lastCompleted: null
-        };
-        this.progressHistory = [];
-        this.currentExam = null;
-        
-        // Инициализация состояний
-        this.quizState = {
-            questions: [],
-            currentQuestionIndex: 0,
-            userAnswers: [],
-            timeLeft: 1800,
-            timer: null
-        };
-        
-        this.taskState = {
-            currentTask: null,
-            currentStep: 1,
-            userAnswers: [],
-            score: 0
-        };
-        
+
         this.initializeApp();
     }
 
     initializeApp() {
-        this.loadProgress();
+        this.loadUserProgress();
+        this.initializeNavigation();
         this.initializeEventListeners();
-        this.updateAllDisplays();
-        this.checkDailyChallenge();
-        this.updateContentForUserType();
+        this.updateActivity();
+        
+        // Скрыть главное приложение при загрузке
+        this.screens.main.classList.add('hidden');
+    }
+
+    initializeNavigation() {
+        // Навигация между экранами
+        document.getElementById('startFreeButton').addEventListener('click', () => {
+            this.showScreen('version');
+        });
+
+        document.querySelectorAll('[data-version]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                this.state.version = e.target.getAttribute('data-version');
+                this.showScreen('course');
+            });
+        });
+
+        document.getElementById('backToWelcomeButton').addEventListener('click', () => {
+            this.showScreen('welcome');
+        });
+
+        // Выбор курса
+        document.querySelectorAll('.course-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                document.querySelectorAll('.course-card').forEach(c => {
+                    c.classList.remove('active');
+                });
+                e.currentTarget.classList.add('active');
+                
+                this.state.course = e.currentTarget.getAttribute('data-course');
+                document.getElementById('startLearningButton').disabled = false;
+            });
+        });
+
+        document.getElementById('startLearningButton').addEventListener('click', () => {
+            this.startApplication();
+        });
+
+        document.getElementById('backToVersionButton').addEventListener('click', () => {
+            this.showScreen('version');
+        });
+
+        // Навигация по вкладкам
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabId = e.currentTarget.getAttribute('data-tab');
+                this.switchTab(tabId);
+            });
+        });
+
+        // Настройки
+        document.getElementById('notificationsToggle').addEventListener('change', (e) => {
+            this.state.settings.notifications = e.target.checked;
+            this.saveUserProgress();
+        });
+
+        document.getElementById('darkModeToggle').addEventListener('change', (e) => {
+            this.state.settings.darkMode = e.target.checked;
+            this.toggleDarkMode();
+            this.saveUserProgress();
+        });
+
+        document.getElementById('soundsToggle').addEventListener('change', (e) => {
+            this.state.settings.sounds = e.target.checked;
+            this.saveUserProgress();
+        });
     }
 
     initializeEventListeners() {
-        // Навигация по вкладкам
-        this.initializeTabs();
-        
-        // Пользовательские настройки
-        this.initializeUserType();
-        
-        // Тесты
-        this.initializeTheory();
-        
-        // Станции
-        this.initializeStations();
-        
-        // Задачи
-        this.initializeTasks();
-        
-        // Быстрые действия
-        this.initializeQuickActions();
-        
-        // Мобильные функции
-        this.initializeMobileFeatures();
-        
-        // Профиль
-        this.initializeProfile();
-        
-        // Прогресс экзамена
-        this.initializeExamProgress();
+        // Выбор вариантов ответа в тестах
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('quiz-option')) {
+                const options = e.target.parentElement.querySelectorAll('.quiz-option');
+                options.forEach(opt => opt.classList.remove('selected'));
+                e.target.classList.add('selected');
+            }
+        });
+
+        // Чеклисты для станций
+        document.addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox' && e.target.closest('.checklist-item')) {
+                const item = e.target.closest('.checklist-item');
+                if (e.target.checked) {
+                    item.classList.add('completed');
+                } else {
+                    item.classList.remove('completed');
+                }
+            }
+        });
     }
 
-    loadProgress() {
-        const saved = localStorage.getItem('medmate_progress');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                this.currentXP = data.currentXP || 0;
-                this.currentLevel = data.currentLevel || 1;
-                this.userStats = data.userStats || this.userStats;
-                this.achievements = data.achievements || this.achievements;
-                this.dailyProgress = data.dailyProgress || this.dailyProgress;
-                this.progressHistory = data.progressHistory || [];
-                
-            } catch (e) {
-                console.error('Error loading progress:', e);
-            }
+    showScreen(screenName) {
+        Object.values(this.screens).forEach(screen => {
+            screen.classList.add('hidden');
+        });
+        this.screens[screenName].classList.remove('hidden');
+    }
+
+    switchTab(tabId) {
+        // Обновить активную вкладку
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`.nav-tab[data-tab="${tabId}"]`).classList.add('active');
+
+        // Обновить активный контент
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+
+        // Загрузить контент для вкладки
+        this.loadTabContent(tabId);
+    }
+
+    loadTabContent(tabId) {
+        switch(tabId) {
+            case 'theory':
+                this.loadTheorySections();
+                break;
+            case 'stations':
+                this.loadStations();
+                break;
+            case 'tasks':
+                this.loadTasks();
+                break;
+            case 'progress':
+                this.loadProgress();
+                break;
+            case 'profile':
+                this.loadProfile();
+                break;
         }
     }
 
-    saveProgress() {
+    startApplication() {
+        if (!this.state.course) {
+            alert('Пожалуйста, выберите курс!');
+            return;
+        }
+        
+        this.showScreen('main');
+        this.updateDashboard();
+        this.updateWelcomeMessage();
+        this.loadTabContent('dashboard');
+    }
+
+    // ===== ТЕСТИРОВАНИЕ =====
+    loadTheorySections() {
+        const container = document.getElementById('theorySections');
+        if (!container) return;
+
+        const sections = [
+            { id: 'therapy', name: 'Терапия', icon: 'fas fa-heartbeat', count: QuestionDatabase.therapy.length },
+            { id: 'surgery', name: 'Хирургия', icon: 'fas fa-syringe', count: QuestionDatabase.surgery.length },
+            { id: 'pediatrics', name: 'Педиатрия', icon: 'fas fa-baby', count: QuestionDatabase.pediatrics.length },
+            { id: 'reanimation', name: 'Реанимация', icon: 'fas fa-heart', count: QuestionDatabase.reanimation.length },
+            { id: 'neurology', name: 'Неврология', icon: 'fas fa-brain', count: QuestionDatabase.neurology.length },
+            { id: 'pharmacology', name: 'Фармакология', icon: 'fas fa-pills', count: QuestionDatabase.pharmacology.length }
+        ];
+
+        container.innerHTML = sections.map(section => `
+            <div class="card section-card" onclick="app.startQuiz('${section.id}')">
+                <div class="section-icon">
+                    <i class="${section.icon}"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div class="body-medium text-dark" style="font-weight: 600;">${section.name}</div>
+                    <div class="body-small text-gray">${section.count} вопросов</div>
+                </div>
+                <i class="fas fa-chevron-right text-gray"></i>
+            </div>
+        `).join('');
+    }
+
+    startQuiz(category) {
+        const questions = QuestionDatabase[category] || [];
+        if (questions.length === 0) {
+            alert('В этом разделе пока нет вопросов!');
+            return;
+        }
+
+        // Для пробной версии ограничиваем количество вопросов
+        let quizQuestions = questions;
+        if (this.state.version === 'trial') {
+            quizQuestions = questions.slice(0, 10); // 10 вопросов в пробной версии
+        }
+
+        this.state.currentQuiz = {
+            category: category,
+            currentQuestion: 0,
+            score: 0,
+            questions: quizQuestions,
+            startTime: Date.now(),
+            userAnswers: [],
+            markedQuestions: new Set()
+        };
+
+        this.showQuizInterface();
+        this.loadQuestion();
+        this.startTimer(120); // 2 минуты на вопрос
+    }
+
+    showQuizInterface() {
+        document.querySelectorAll('.section-card').forEach(card => {
+            card.style.display = 'none';
+        });
+        document.getElementById('quizContainer').classList.remove('hidden');
+        document.getElementById('quizResults').classList.add('hidden');
+        document.getElementById('answerReview').classList.add('hidden');
+    }
+
+    loadQuestion() {
+        const quiz = this.state.currentQuiz;
+        const question = quiz.questions[quiz.currentQuestion];
+        
+        if (!question) {
+            this.endQuiz();
+            return;
+        }
+
+        document.getElementById('quizQuestion').textContent = question.question;
+        document.getElementById('currentQuestion').textContent = quiz.currentQuestion + 1;
+        document.getElementById('totalQuestions').textContent = quiz.questions.length;
+
+        const optionsContainer = document.getElementById('quizOptions');
+        optionsContainer.innerHTML = '';
+
+        question.options.forEach((option, index) => {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'quiz-option';
+            optionElement.textContent = option;
+            optionElement.setAttribute('data-index', index);
+            optionsContainer.appendChild(optionElement);
+        });
+
+        // Сбросить выбранный вариант
+        const selectedOption = document.querySelector('.quiz-option.selected');
+        if (selectedOption) {
+            selectedOption.classList.remove('selected');
+        }
+    }
+
+    startTimer(seconds) {
+        let timeLeft = seconds;
+        const timerElement = document.getElementById('quizTimer');
+        
+        if (this.state.currentQuiz.timer) {
+            clearInterval(this.state.currentQuiz.timer);
+        }
+
+        this.state.currentQuiz.timer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(this.state.currentQuiz.timer);
+                this.nextQuestion();
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    nextQuestion() {
+        const selectedOption = document.querySelector('.quiz-option.selected');
+        if (!selectedOption) {
+            alert('Пожалуйста, выберите ответ');
+            return;
+        }
+
+        const quiz = this.state.currentQuiz;
+        const selectedIndex = parseInt(selectedOption.getAttribute('data-index'));
+        const isCorrect = selectedIndex === quiz.questions[quiz.currentQuestion].correct;
+        
+        // Сохранить ответ пользователя
+        quiz.userAnswers.push({
+            questionIndex: quiz.currentQuestion,
+            selectedAnswer: selectedIndex,
+            isCorrect: isCorrect,
+            timeSpent: 120 - (parseInt(document.getElementById('quizTimer').textContent.split(':')[0]) * 60 + 
+                             parseInt(document.getElementById('quizTimer').textContent.split(':')[1]))
+        });
+
+        if (isCorrect) {
+            quiz.score++;
+            this.state.userStats.correctAnswers++;
+            if (this.state.settings.sounds) {
+                this.playSound('correct');
+            }
+        } else {
+            // Добавить в ошибки
+            this.state.userStats.mistakes.push({
+                question: quiz.questions[quiz.currentQuestion],
+                userAnswer: selectedIndex,
+                timestamp: Date.now(),
+                category: quiz.category
+            });
+            if (this.state.settings.sounds) {
+                this.playSound('incorrect');
+            }
+        }
+
+        this.state.userStats.totalQuestions++;
+        this.state.userStats.xp += isCorrect ? 10 : 5;
+
+        // Перейти к следующему вопросу
+        quiz.currentQuestion++;
+        
+        if (quiz.currentQuestion < quiz.questions.length) {
+            this.loadQuestion();
+            this.startTimer(120);
+        } else {
+            this.endQuiz();
+        }
+
+        this.updateDashboard();
+        this.saveUserProgress();
+    }
+
+    markForReview() {
+        const quiz = this.state.currentQuiz;
+        if (quiz) {
+            quiz.markedQuestions.add(quiz.currentQuestion);
+            alert('Вопрос отмечен для повторения!');
+        }
+    }
+
+    endQuiz() {
+        const quiz = this.state.currentQuiz;
+        if (!quiz) return;
+
+        if (quiz.timer) {
+            clearInterval(quiz.timer);
+        }
+
+        this.state.userStats.testsCompleted++;
+        this.state.userStats.timeSpent += Math.floor((Date.now() - quiz.startTime) / 1000);
+
+        // Показать результаты
+        this.showQuizResults();
+        this.updateDashboard();
+        this.saveUserProgress();
+    }
+
+    showQuizResults() {
+        const quiz = this.state.currentQuiz;
+        const percentage = Math.round((quiz.score / quiz.questions.length) * 100);
+        const timeSpent = Math.floor((Date.now() - quiz.startTime) / 1000);
+        const minutes = Math.floor(timeSpent / 60);
+        const seconds = timeSpent % 60;
+
+        document.getElementById('quizScore').textContent = `${quiz.score}/${quiz.questions.length}`;
+        document.getElementById('quizPercentage').textContent = `${percentage}% правильных ответов`;
+        document.getElementById('quizTimeSpent').textContent = `Время: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('correctAnswers').textContent = quiz.score;
+        document.getElementById('wrongAnswers').textContent = quiz.questions.length - quiz.score;
+        document.getElementById('earnedXP').textContent = `${quiz.score * 10 + (quiz.questions.length - quiz.score) * 5} XP`;
+
+        document.getElementById('quizContainer').classList.add('hidden');
+        document.getElementById('quizResults').classList.remove('hidden');
+    }
+
+    showAnswerReview() {
+        const quiz = this.state.currentQuiz;
+        const reviewContainer = document.getElementById('reviewQuestions');
+        
+        reviewContainer.innerHTML = quiz.questions.map((question, index) => {
+            const userAnswer = quiz.userAnswers.find(answer => answer.questionIndex === index);
+            const isCorrect = userAnswer ? userAnswer.isCorrect : false;
+            
+            return `
+                <div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                    <div class="body-medium text-dark mb-2">${index + 1}. ${question.question}</div>
+                    <div class="body-small text-gray mb-2">
+                        Ваш ответ: ${userAnswer ? question.options[userAnswer.selectedAnswer] : 'Нет ответа'}
+                    </div>
+                    <div class="body-small text-success mb-2">
+                        Правильный ответ: ${question.options[question.correct]}
+                    </div>
+                    ${question.explanation ? `
+                        <div class="review-explanation">
+                            <div class="body-small text-dark">Объяснение:</div>
+                            <div class="body-small text-gray">${question.explanation}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('quizResults').classList.add('hidden');
+        document.getElementById('answerReview').classList.remove('hidden');
+    }
+
+    closeReview() {
+        document.getElementById('answerReview').classList.add('hidden');
+        document.getElementById('quizResults').classList.remove('hidden');
+    }
+
+    restartQuiz() {
+        this.startQuiz(this.state.currentQuiz.category);
+    }
+
+    // ===== ПРАКТИЧЕСКИЕ СТАНЦИИ =====
+    loadStations() {
+        const container = document.getElementById('stationsGrid');
+        if (!container || !this.state.course) return;
+
+        const stations = StationsDatabase[this.state.course] || [];
+        container.innerHTML = stations.map(station => `
+            <div class="card section-card" onclick="app.startStation(${station.id})">
+                <div class="section-icon">
+                    <i class="fas fa-procedures"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div class="body-medium text-dark" style="font-weight: 600;">${station.title}</div>
+                    <div class="body-small text-gray">${Math.floor(station.timeLimit / 60)} мин • ${station.checklist.length} шагов</div>
+                </div>
+                <i class="fas fa-chevron-right text-gray"></i>
+            </div>
+        `).join('');
+    }
+
+    startStation(stationId) {
+        const stations = StationsDatabase[this.state.course] || [];
+        const station = stations.find(s => s.id === stationId);
+        if (!station) return;
+
+        this.state.currentStation = {
+            ...station,
+            startTime: Date.now(),
+            completedSteps: new Set(),
+            timer: null
+        };
+
+        this.showStationInterface();
+        this.loadStationContent();
+        this.startStationTimer(station.timeLimit);
+    }
+
+    showStationInterface() {
+        document.getElementById('stationsGrid').style.display = 'none';
+        document.getElementById('stationPractice').classList.remove('hidden');
+    }
+
+    loadStationContent() {
+        const station = this.state.currentStation;
+        if (!station) return;
+
+        document.getElementById('stationTitle').textContent = station.title;
+        document.getElementById('stationDescription').textContent = station.description;
+
+        const checklistContainer = document.getElementById('stationChecklist');
+        checklistContainer.innerHTML = station.checklist.map((step, index) => `
+            <div class="checklist-item">
+                <input type="checkbox" id="step-${index}" onchange="app.toggleStationStep(${index})">
+                <label for="step-${index}" class="body-small text-dark">${step}</label>
+            </div>
+        `).join('');
+    }
+
+    toggleStationStep(stepIndex) {
+        const station = this.state.currentStation;
+        if (!station) return;
+
+        const checkbox = document.getElementById(`step-${stepIndex}`);
+        if (checkbox.checked) {
+            station.completedSteps.add(stepIndex);
+        } else {
+            station.completedSteps.delete(stepIndex);
+        }
+    }
+
+    startStationTimer(seconds) {
+        let timeLeft = seconds;
+        const timerElement = document.getElementById('stationTimer');
+        
+        if (this.state.currentStation.timer) {
+            clearInterval(this.state.currentStation.timer);
+        }
+
+        this.state.currentStation.timer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(this.state.currentStation.timer);
+                this.completeStation();
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    resetStation() {
+        const station = this.state.currentStation;
+        if (station && station.timer) {
+            clearInterval(station.timer);
+        }
+        this.startStation(station.id);
+    }
+
+    completeStation() {
+        const station = this.state.currentStation;
+        if (!station) return;
+
+        if (station.timer) {
+            clearInterval(station.timer);
+        }
+
+        const allStepsCompleted = station.completedSteps.size === station.checklist.length;
+        const timeSpent = Math.floor((Date.now() - station.startTime) / 1000);
+
+        this.state.userStats.stationsCompleted++;
+        this.state.userStats.timeSpent += timeSpent;
+        
+        if (allStepsCompleted) {
+            this.state.userStats.xp += 50;
+            this.state.userStats.perfectStations++;
+            alert('Станция успешно завершена! +50 XP');
+        } else {
+            this.state.userStats.xp += 20;
+            alert('Станция завершена с ошибками. +20 XP');
+        }
+
+        this.hideStationInterface();
+        this.updateDashboard();
+        this.saveUserProgress();
+        this.checkAchievements();
+    }
+
+    hideStationInterface() {
+        document.getElementById('stationPractice').classList.add('hidden');
+        document.getElementById('stationsGrid').style.display = 'grid';
+        this.state.currentStation = null;
+    }
+
+    // ===== СИТУАЦИОННЫЕ ЗАДАЧИ =====
+    loadTasks() {
+        const container = document.getElementById('tasksGrid');
+        if (!container || !this.state.course) return;
+
+        const tasks = TasksDatabase[this.state.course] || [];
+        container.innerHTML = tasks.map(task => `
+            <div class="card section-card" onclick="app.startTask(${task.id})">
+                <div class="section-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div class="body-medium text-dark" style="font-weight: 600;">${task.title}</div>
+                    <div class="body-small text-gray">${task.questions.length} вопросов</div>
+                </div>
+                <i class="fas fa-chevron-right text-gray"></i>
+            </div>
+        `).join('');
+    }
+
+    startTask(taskId) {
+        const tasks = TasksDatabase[this.state.course] || [];
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        this.state.currentTask = {
+            ...task,
+            startTime: Date.now(),
+            userAnswers: []
+        };
+
+        this.showTaskInterface();
+        this.loadTaskContent();
+    }
+
+    showTaskInterface() {
+        document.getElementById('tasksGrid').style.display = 'none';
+        document.getElementById('taskPractice').classList.remove('hidden');
+    }
+
+    loadTaskContent() {
+        const task = this.state.currentTask;
+        if (!task) return;
+
+        document.getElementById('taskTitle').textContent = task.title;
+        document.getElementById('taskScenario').textContent = task.scenario;
+
+        const questionsContainer = document.getElementById('taskQuestions');
+        questionsContainer.innerHTML = task.questions.map((q, index) => `
+            <div class="task-question">
+                <div class="body-medium text-dark mb-2">${index + 1}. ${q.question}</div>
+                ${q.type === 'text' ? `
+                    <textarea class="task-answer" id="answer-${index}" placeholder="Введите ваш ответ..."></textarea>
+                ` : `
+                    <div class="quiz-options">
+                        ${q.options.map((option, optIndex) => `
+                            <div class="quiz-option" data-index="${optIndex}">${option}</div>
+                        `).join('')}
+                    </div>
+                `}
+            </div>
+        `).join('');
+    }
+
+    checkTaskAnswers() {
+        const task = this.state.currentTask;
+        if (!task) return;
+
+        let correctAnswers = 0;
+        task.userAnswers = [];
+
+        task.questions.forEach((question, index) => {
+            let userAnswer;
+            let isCorrect = false;
+
+            if (question.type === 'text') {
+                const textarea = document.getElementById(`answer-${index}`);
+                userAnswer = textarea.value.trim();
+                // Простая проверка текстовых ответов
+                isCorrect = userAnswer.toLowerCase().includes(question.correctAnswer.toLowerCase());
+            } else {
+                const selectedOption = document.querySelector(`#taskQuestions .quiz-option.selected[data-index]`);
+                if (selectedOption) {
+                    userAnswer = parseInt(selectedOption.getAttribute('data-index'));
+                    isCorrect = userAnswer === question.correct;
+                }
+            }
+
+            task.userAnswers.push({
+                questionIndex: index,
+                userAnswer: userAnswer,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) correctAnswers++;
+        });
+
+        const percentage = Math.round((correctAnswers / task.questions.length) * 100);
+        const timeSpent = Math.floor((Date.now() - task.startTime) / 1000);
+
+        this.state.userStats.tasksCompleted++;
+        this.state.userStats.timeSpent += timeSpent;
+        this.state.userStats.xp += percentage >= 70 ? 40 : 20;
+
+        alert(`Задача завершена! Правильных ответов: ${correctAnswers}/${task.questions.length} (${percentage}%)`);
+
+        this.hideTaskInterface();
+        this.updateDashboard();
+        this.saveUserProgress();
+        this.checkAchievements();
+    }
+
+    resetTask() {
+        const task = this.state.currentTask;
+        if (task) {
+            this.startTask(task.id);
+        }
+    }
+
+    hideTaskInterface() {
+        document.getElementById('taskPractice').classList.add('hidden');
+        document.getElementById('tasksGrid').style.display = 'grid';
+        this.state.currentTask = null;
+    }
+
+    // ===== ПРОГРЕСС И СТАТИСТИКА =====
+    updateDashboard() {
+        // Обновить статистику на главной
+        document.getElementById('statsQuestions').textContent = this.state.userStats.totalQuestions;
+        document.getElementById('statsAccuracy').textContent = this.state.userStats.totalQuestions > 0 ? 
+            Math.round((this.state.userStats.correctAnswers / this.state.userStats.totalQuestions) * 100) + '%' : '0%';
+        document.getElementById('statsTime').textContent = Math.round(this.state.userStats.timeSpent / 3600) + 'ч';
+        document.getElementById('statsLevel').textContent = this.state.userStats.level;
+        
+        // Обновить заголовок
+        document.getElementById('headerXP').textContent = this.state.userStats.xp;
+        document.getElementById('headerLevel').textContent = this.state.userStats.level;
+        
+        // Обновить счетчик ошибок
+        const mistakesCount = this.state.userStats.mistakes.length;
+        document.getElementById('mistakesCount').textContent = 
+            mistakesCount + ' вопрос' + this.getRussianPlural(mistakesCount, '', 'а', 'ов') + ' для повторения';
+
+        // Обновить уровень
+        this.updateLevel();
+    }
+
+    updateLevel() {
+        const xp = this.state.userStats.xp;
+        const newLevel = Math.floor(xp / 100) + 1;
+        
+        if (newLevel > this.state.userStats.level) {
+            this.state.userStats.level = newLevel;
+            if (this.state.settings.sounds) {
+                this.playSound('levelup');
+            }
+            alert(`Поздравляем! Вы достигли ${newLevel} уровня!`);
+        }
+    }
+
+    loadProgress() {
+        // Общий прогресс
+        const totalActivities = this.state.userStats.testsCompleted + this.state.userStats.stationsCompleted + this.state.userStats.tasksCompleted;
+        const overallProgress = totalActivities > 0 ? Math.min(100, Math.round((totalActivities / 50) * 100)) : 0;
+        
+        document.getElementById('overallProgress').textContent = overallProgress + '%';
+        document.getElementById('overallProgressBar').style.width = overallProgress + '%';
+
+        // Слабые зоны
+        this.loadWeakTopics();
+
+        // Достижения
+        this.loadAchievements();
+    }
+
+    loadWeakTopics() {
+        const container = document.getElementById('weakTopics');
+        if (!container) return;
+
+        // Анализ ошибок по категориям
+        const categoryErrors = {};
+        this.state.userStats.mistakes.forEach(mistake => {
+            if (mistake.category) {
+                categoryErrors[mistake.category] = (categoryErrors[mistake.category] || 0) + 1;
+            }
+        });
+
+        const weakTopics = Object.entries(categoryErrors)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+
+        container.innerHTML = weakTopics.map(([category, errors]) => {
+            const categoryNames = {
+                therapy: 'Терапия',
+                surgery: 'Хирургия',
+                pediatrics: 'Педиатрия',
+                reanimation: 'Реанимация',
+                neurology: 'Неврология',
+                pharmacology: 'Фармакология'
+            };
+
+            return `
+                <div class="topic-item">
+                    <div class="body-medium text-dark">${categoryNames[category] || category}</div>
+                    <div class="badge badge-error">${errors} ошибок</div>
+                </div>
+            `;
+        }).join('') || '<div class="body-small text-gray">Пока нет данных о слабых зонах</div>';
+    }
+
+    loadAchievements() {
+        const container = document.getElementById('achievementsGrid');
+        if (!container) return;
+
+        const achievements = AchievementsDatabase.map(achievement => {
+            const earned = this.state.userStats.achievements.includes(achievement.id);
+            const conditionMet = achievement.condition(this.state.userStats);
+
+            return {
+                ...achievement,
+                earned: earned,
+                conditionMet: conditionMet
+            };
+        });
+
+        container.innerHTML = achievements.map(achievement => `
+            <div class="achievement-item ${achievement.earned ? 'earned' : ''}">
+                <div class="achievement-icon">
+                    <i class="${achievement.icon}"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div class="body-medium text-dark">${achievement.name}</div>
+                    <div class="body-small text-gray">${achievement.description}</div>
+                </div>
+                <div class="body-small ${achievement.earned ? 'text-success' : 'text-gray'}">
+                    ${achievement.earned ? `+${achievement.xp} XP` : (achievement.conditionMet ? 'Готово к получению' : '')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    checkAchievements() {
+        AchievementsDatabase.forEach(achievement => {
+            if (!this.state.userStats.achievements.includes(achievement.id) && 
+                achievement.condition(this.state.userStats)) {
+                
+                this.state.userStats.achievements.push(achievement.id);
+                this.state.userStats.xp += achievement.xp;
+                
+                if (this.state.settings.sounds) {
+                    this.playSound('achievement');
+                }
+                
+                alert(`Достижение получено: ${achievement.name}! +${achievement.xp} XP`);
+            }
+        });
+    }
+
+    // ===== ПРОФИЛЬ =====
+    loadProfile() {
+        document.getElementById('profileName').textContent = 'Студент';
+        document.getElementById('profileCourse').textContent = this.state.course === 'nurse' ? 
+            'Медсестра/Медбрат' : 'Врач';
+        document.getElementById('profileLevel').textContent = this.state.userStats.level;
+        document.getElementById('profileXP').textContent = this.state.userStats.xp + ' XP';
+        document.getElementById('profileVersion').textContent = this.state.version === 'premium' ? 'Премиум' : 'Пробная';
+        document.getElementById('profileActivity').textContent = this.state.userStats.activityDays.size + ' дней';
+
+        // Настройки
+        document.getElementById('notificationsToggle').checked = this.state.settings.notifications;
+        document.getElementById('darkModeToggle').checked = this.state.settings.darkMode;
+        document.getElementById('soundsToggle').checked = this.state.settings.sounds;
+    }
+
+    // ===== УТИЛИТЫ =====
+    updateWelcomeMessage() {
+        const hour = new Date().getHours();
+        let greeting;
+        
+        if (hour >= 5 && hour < 12) greeting = 'Доброе утро';
+        else if (hour >= 12 && hour < 18) greeting = 'Добрый день';
+        else if (hour >= 18 && hour < 23) greeting = 'Добрый вечер';
+        else greeting = 'Доброй ночи';
+
+        document.getElementById('welcomeMessage').textContent = greeting + '!';
+    }
+
+    updateActivity() {
+        const today = new Date().toISOString().split('T')[0];
+        this.state.userStats.activityDays.add(today);
+        this.state.userStats.lastActive = new Date().toISOString();
+        this.saveUserProgress();
+    }
+
+    getRussianPlural(number, one, two, five) {
+        number = Math.abs(number);
+        number %= 100;
+        if (number >= 5 && number <= 20) {
+            return five;
+        }
+        number %= 10;
+        if (number === 1) {
+            return one;
+        }
+        if (number >= 2 && number <= 4) {
+            return two;
+        }
+        return five;
+    }
+
+    playSound(type) {
+        // Простая имитация звуков через Web Audio API
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            switch(type) {
+                case 'correct':
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    break;
+                case 'incorrect':
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    break;
+                case 'levelup':
+                    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                    break;
+                case 'achievement':
+                    oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+                    break;
+            }
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (e) {
+            console.log('Web Audio API не поддерживается');
+        }
+    }
+
+    toggleDarkMode() {
+        if (this.state.settings.darkMode) {
+            document.documentElement.style.setProperty('--gray-50', '#111827');
+            document.documentElement.style.setProperty('--gray-100', '#1F2937');
+            document.documentElement.style.setProperty('--gray-200', '#374151');
+            document.documentElement.style.setProperty('--gray-900', '#F9FAFB');
+        } else {
+            document.documentElement.style.setProperty('--gray-50', '#F9FAFB');
+            document.documentElement.style.setProperty('--gray-100', '#F3F4F6');
+            document.documentElement.style.setProperty('--gray-200', '#E5E7EB');
+            document.documentElement.style.setProperty('--gray-900', '#111827');
+        }
+    }
+
+    // ===== СОХРАНЕНИЕ И ЗАГРУЗКА =====
+    saveUserProgress() {
         const data = {
-            currentXP: this.currentXP,
-            currentLevel: this.currentLevel,
-            userStats: this.userStats,
-            achievements: this.achievements,
-            dailyProgress: this.dailyProgress,
-            progressHistory: this.progressHistory
+            state: this.state,
+            timestamp: new Date().toISOString()
         };
         localStorage.setItem('medmate_progress', JSON.stringify(data));
     }
 
-    initializeTabs() {
-        console.log('Initializing tabs...');
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetTab = tab.getAttribute('data-tab');
-                console.log('Tab clicked:', targetTab);
+    loadUserProgress() {
+        try {
+            const saved = localStorage.getItem('medmate_progress');
+            if (saved) {
+                const data = JSON.parse(saved);
+                this.state = { ...this.state, ...data.state };
                 
-                // Update active tab
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Show target content
-                tabContents.forEach(content => {
-                    content.classList.remove('active');
-                    if (content.id === targetTab) {
-                        content.classList.add('active');
-                        console.log('Showing tab:', targetTab);
-                    }
-                });
-
-                // Special handling for progress tab
-                if (targetTab === 'progress') {
-                    this.updateProgressTab();
-                }
-
-                this.showToast('Переход выполнен успешно!', 'success');
-            });
-        });
-    }
-
-    initializeUserType() {
-        const userTypeSelect = document.getElementById('userType');
-        if (userTypeSelect) {
-            userTypeSelect.value = this.userType;
-            
-            userTypeSelect.addEventListener('change', (e) => {
-                this.userType = e.target.value;
-                this.updateContentForUserType();
-                this.updateAllDisplays();
-                this.showToast(`Режим изменен: ${e.target.options[e.target.selectedIndex].text}`, 'info');
-            });
+                // Восстановить Set'ы
+                this.state.userStats.activityDays = new Set(this.state.userStats.activityDays);
+            }
+        } catch (e) {
+            console.log('Ошибка загрузки прогресса:', e);
         }
     }
 
-    updateContentForUserType() {
-        if (this.userType === 'nurse') {
-            this.userStats.theories.total = 1200;
-            this.userStats.tasks.total = 80;
-        } else {
-            this.userStats.theories.total = 1800;
-            this.userStats.tasks.total = 150;
-        }
-        this.updateAllDisplays();
-    }
-
-    // ========== ТЕСТЫ ==========
-
-    initializeTheory() {
-        console.log('Initializing theory...');
-        
-        const startTestBtn = document.getElementById('startRandomTest');
-        const skipQuestionBtn = document.getElementById('skipQuestion');
-        const nextQuestionBtn = document.getElementById('nextQuestion');
-        const restartQuizBtn = document.getElementById('restartQuiz');
-
-        if (startTestBtn) {
-            startTestBtn.addEventListener('click', () => {
-                console.log('Start test clicked');
-                this.startRandomTest();
-            });
-        }
-
-        if (skipQuestionBtn) {
-            skipQuestionBtn.addEventListener('click', () => {
-                this.skipQuestion();
-            });
-        }
-
-        if (nextQuestionBtn) {
-            nextQuestionBtn.addEventListener('click', () => {
-                this.nextQuestion();
-            });
-        }
-
-        if (restartQuizBtn) {
-            restartQuizBtn.addEventListener('click', () => {
-                this.startRandomTest();
-            });
-        }
-    }
-
-    startRandomTest() {
-        console.log('Starting random test...');
-        this.quizState = {
-            questions: this.generateSampleQuestions(20),
-            currentQuestionIndex: 0,
-            userAnswers: new Array(20).fill(-1),
-            timeLeft: 1800,
-            timer: null
+    exportProgress() {
+        const data = {
+            state: this.state,
+            exportDate: new Date().toISOString()
         };
-
-        const quizContainer = document.getElementById('quizContainer');
-        const quizResults = document.getElementById('quizResults');
-
-        if (quizContainer) quizContainer.classList.remove('hidden');
-        if (quizResults) quizResults.classList.add('hidden');
-
-        this.startQuizTimer();
-        this.showCurrentQuestion();
         
-        this.showToast('Тест начат! У вас 30 минут.', 'info');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `medmate_progress_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
-    generateSampleQuestions(count) {
-        const questions = [
-            {
-                id: 1,
-                question: 'Какая доза адреналина используется при сердечно-легочной реанимации у взрослых?',
-                options: [
-                    { text: '0.1 мг', correct: false },
-                    { text: '1 мг', correct: true },
-                    { text: '10 мг', correct: false },
-                    { text: '0.01 мг', correct: false }
-                ],
-                difficulty: 'medium',
-                explanation: 'При СЛР у взрослых используется адреналин 1 мг внутривенно каждые 3-5 минут.'
-            },
-            {
-                id: 2,
-                question: 'Какой антибиотик является препаратом выбора при внебольничной пневмонии?',
-                options: [
-                    { text: 'Амоксициллин', correct: false },
-                    { text: 'Цефтриаксон', correct: false },
-                    { text: 'Амоксициллин-клавуланат', correct: true },
-                    { text: 'Ципрофлоксацин', correct: false }
-                ],
-                difficulty: 'medium',
-                explanation: 'Амоксициллин-клавуланат рекомендуется как препарат выбора при внебольничной пневмонии.'
-            }
-        ];
-
-        // Дублируем вопросы чтобы получить нужное количество
-        const result = [];
-        for (let i = 0; i < count; i++) {
-            const original = questions[i % questions.length];
-            result.push({
-                ...original,
-                id: i + 1
-            });
-        }
-        return result;
-    }
-
-    startQuizTimer() {
-        if (this.quizState.timer) {
-            clearInterval(this.quizState.timer);
-        }
-
-        this.quizState.timer = setInterval(() => {
-            this.quizState.timeLeft--;
-            this.updateQuizTimer();
-
-            if (this.quizState.timeLeft <= 0) {
-                this.finishQuiz();
-            }
-        }, 1000);
-    }
-
-    updateQuizTimer() {
-        const timerElement = document.getElementById('quizTimer');
-        if (timerElement) {
-            const minutes = Math.floor(this.quizState.timeLeft / 60);
-            const seconds = this.quizState.timeLeft % 60;
-            timerElement.textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    resetProgress() {
+        if (confirm('Вы уверены, что хотите сбросить весь прогресс? Это действие нельзя отменить.')) {
+            localStorage.removeItem('medmate_progress');
+            location.reload();
         }
     }
 
-    showCurrentQuestion() {
-        const currentQuestion = this.quizState.questions[this.quizState.currentQuestionIndex];
-        
-        // Обновляем прогресс
-        const currentQuestionElement = document.getElementById('currentQuestion');
-        const totalQuestionsElement = document.getElementById('totalQuestions');
-        const quizProgressElement = document.getElementById('quizProgress');
-        
-        if (currentQuestionElement) currentQuestionElement.textContent = this.quizState.currentQuestionIndex + 1;
-        if (totalQuestionsElement) totalQuestionsElement.textContent = this.quizState.questions.length;
-        
-        const progress = ((this.quizState.currentQuestionIndex + 1) / this.quizState.questions.length) * 100;
-        if (quizProgressElement) quizProgressElement.style.width = `${progress}%`;
-
-        // Показываем вопрос
-        const questionElement = document.getElementById('quizQuestion');
-        if (questionElement) questionElement.textContent = currentQuestion.question;
-        
-        // Обновляем сложность
-        const difficultyElement = document.getElementById('questionDifficulty');
-        if (difficultyElement) {
-            difficultyElement.textContent = this.getDifficultyText(currentQuestion.difficulty);
-            difficultyElement.className = `difficulty ${currentQuestion.difficulty}`;
-        }
-
-        // Показываем варианты ответов
-        const optionsContainer = document.getElementById('quizOptions');
-        if (optionsContainer) {
-            optionsContainer.innerHTML = '';
-
-            currentQuestion.options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'option';
-                if (this.quizState.userAnswers[this.quizState.currentQuestionIndex] === index) {
-                    optionElement.classList.add('selected');
-                }
-
-                optionElement.innerHTML = `
-                    <div class="option-letter">${String.fromCharCode(65 + index)}</div>
-                    <div class="option-text">${option.text}</div>
-                `;
-
-                optionElement.addEventListener('click', () => {
-                    this.selectAnswer(index);
-                });
-
-                optionsContainer.appendChild(optionElement);
-            });
-        }
-
-        // Скрываем объяснение
-        const explanationElement = document.getElementById('quizExplanation');
-        if (explanationElement) explanationElement.classList.add('hidden');
-
-        // Обновляем кнопки
-        const nextQuestionBtn = document.getElementById('nextQuestion');
-        if (nextQuestionBtn) {
-            nextQuestionBtn.disabled = this.quizState.userAnswers[this.quizState.currentQuestionIndex] === -1;
+    // ===== ОБЩИЕ МЕТОДЫ =====
+    startActivity(type) {
+        switch(type) {
+            case 'theory':
+                this.switchTab('theory');
+                break;
+            case 'stations':
+                this.switchTab('stations');
+                break;
+            case 'tasks':
+                this.switchTab('tasks');
+                break;
+            case 'mistakes':
+                this.startMistakesReview();
+                break;
         }
     }
 
-    getDifficultyText(difficulty) {
-        const difficulties = {
-            'easy': 'Легкая',
-            'medium': 'Средняя',
-            'hard': 'Сложная'
-        };
-        return difficulties[difficulty] || 'Средняя';
-    }
-
-    selectAnswer(answerIndex) {
-        this.quizState.userAnswers[this.quizState.currentQuestionIndex] = answerIndex;
-        
-        const options = document.querySelectorAll('#quizOptions .option');
-        options.forEach((option, index) => {
-            option.classList.toggle('selected', index === answerIndex);
-        });
-
-        const nextQuestionBtn = document.getElementById('nextQuestion');
-        if (nextQuestionBtn) nextQuestionBtn.disabled = false;
-
-        this.showExplanation();
-    }
-
-    showExplanation() {
-        const currentQuestion = this.quizState.questions[this.quizState.currentQuestionIndex];
-        const explanationText = document.getElementById('explanationText');
-        const explanationElement = document.getElementById('quizExplanation');
-        
-        if (explanationText) explanationText.textContent = currentQuestion.explanation;
-        if (explanationElement) explanationElement.classList.remove('hidden');
-    }
-
-    skipQuestion() {
-        this.quizState.userAnswers[this.quizState.currentQuestionIndex] = -1;
-        this.nextQuestion();
-    }
-
-    nextQuestion() {
-        if (this.quizState.currentQuestionIndex < this.quizState.questions.length - 1) {
-            this.quizState.currentQuestionIndex++;
-            this.showCurrentQuestion();
-        } else {
-            this.finishQuiz();
-        }
-    }
-
-    finishQuiz() {
-        if (this.quizState.timer) {
-            clearInterval(this.quizState.timer);
-        }
-        
-        // Calculate results
-        let correctAnswers = 0;
-        this.quizState.userAnswers.forEach((answer, index) => {
-            if (answer !== -1 && this.quizState.questions[index].options[answer].correct) {
-                correctAnswers++;
-            }
-        });
-        
-        const total = this.quizState.questions.length;
-        const percentage = Math.round((correctAnswers / total) * 100);
-        
-        // Update results display
-        const correctAnswersElement = document.getElementById('correctAnswers');
-        const totalQuestionsElement = document.getElementById('totalQuestionsResult');
-        const successRateElement = document.getElementById('successRate');
-        
-        if (correctAnswersElement) correctAnswersElement.textContent = correctAnswers;
-        if (totalQuestionsElement) totalQuestionsElement.textContent = total;
-        if (successRateElement) successRateElement.textContent = `${percentage}%`;
-        
-        // Calculate XP
-        const totalXP = correctAnswers * 10;
-        const earnedXPElement = document.getElementById('earnedXP');
-        if (earnedXPElement) earnedXPElement.textContent = totalXP;
-        
-        // Update stats
-        this.userStats.theories.completed += total;
-        this.userStats.theories.correct += correctAnswers;
-        
-        this.dailyProgress.questions += total;
-        this.updateDailyProgress();
-        
-        // Show results
-        const quizContainer = document.getElementById('quizContainer');
-        const quizResults = document.getElementById('quizResults');
-        
-        if (quizContainer) quizContainer.classList.add('hidden');
-        if (quizResults) quizResults.classList.remove('hidden');
-        
-        this.awardXP(totalXP);
-        this.updateAllDisplays();
-        
-        this.showToast(`Тест завершен! Результат: ${correctAnswers}/${total} (${percentage}%). Получено ${totalXP} XP`, 'success');
-    }
-
-    // ========== СТАНЦИИ ==========
-
-    initializeStations() {
-        console.log('Initializing stations...');
-        this.renderStationsGrid();
-        this.initializeStationPractice();
-    }
-
-    initializeStationPractice() {
-        // Обработчики для кнопок станций
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('practice-station')) {
-                const stationCard = e.target.closest('.station-card');
-                const stationId = stationCard.getAttribute('data-station');
-                this.startStationPractice(stationId);
-            }
-            
-            if (e.target.classList.contains('view-checklist')) {
-                const stationCard = e.target.closest('.station-card');
-                const stationId = stationCard.getAttribute('data-station');
-                this.showChecklist(stationId);
-            }
-            
-            if (e.target.classList.contains('view-video')) {
-                const stationCard = e.target.closest('.station-card');
-                const stationId = stationCard.getAttribute('data-station');
-                this.showTrainingVideo(stationId);
-            }
-        });
-
-        // Обработчики для практики станций
-        const closePracticeBtn = document.getElementById('closePractice');
-        const submitStationBtn = document.getElementById('submitStation');
-        const startTimerBtn = document.getElementById('startTimer');
-        const resetTimerBtn = document.getElementById('resetTimer');
-
-        if (closePracticeBtn) {
-            closePracticeBtn.addEventListener('click', () => {
-                this.closeStationPractice();
-            });
+    startMistakesReview() {
+        const mistakes = this.state.userStats.mistakes;
+        if (mistakes.length === 0) {
+            alert('Пока нет вопросов для повторения!');
+            return;
         }
 
-        if (submitStationBtn) {
-            submitStationBtn.addEventListener('click', () => {
-                this.submitStationPractice();
-            });
-        }
-
-        if (startTimerBtn) {
-            startTimerBtn.addEventListener('click', () => {
-                this.startStationTimer();
-            });
-        }
-
-        if (resetTimerBtn) {
-            resetTimerBtn.addEventListener('click', () => {
-                this.resetStationTimer();
-            });
-        }
-    }
-
-    renderStationsGrid() {
-        const stationsGrid = document.getElementById('stationsGrid');
-        if (!stationsGrid) return;
-
-        const stations = [
-            {
-                id: 'cpr',
-                name: 'СЛР',
-                time: '10 минут',
-                description: 'Сердечно-лёгочная реанимация взрослого и ребёнка',
-                icon: 'heartbeat'
-            },
-            {
-                id: 'emergency',
-                name: 'Неотложная помощь',
-                time: '15 минут',
-                description: 'Оказание неотложной помощи при острых состояниях',
-                icon: 'ambulance'
-            },
-            {
-                id: 'examination',
-                name: 'Физикальное обследование',
-                time: '12 минут',
-                description: 'Обследование сердечно-сосудистой и дыхательной систем',
-                icon: 'stethoscope'
-            },
-            {
-                id: 'history',
-                name: 'Сбор жалоб и анамнеза',
-                time: '8 минут',
-                description: 'Стандартизированный сбор информации у пациента',
-                icon: 'comment-medical'
-            },
-            {
-                id: 'prevention',
-                name: 'Профилактический осмотр',
-                time: '10 минут',
-                description: 'Профосмотр и рекомендации по профилактике',
-                icon: 'shield-virus'
-            }
-        ];
-
-        stationsGrid.innerHTML = stations.map(station => {
-            const isCompleted = this.userStats.stations.scores[station.id] !== undefined;
-            const practiceCount = this.userStats.stations.practiceCount[station.id] || 0;
-            
-            return `
-                <div class="station-card" data-station="${station.id}">
-                    <div class="station-header">
-                        <div class="station-icon">
-                            <i class="fas fa-${station.icon}"></i>
-                        </div>
-                        <div class="station-info">
-                            <h3>${station.name}</h3>
-                            <span class="station-time">${station.time}</span>
-                        </div>
-                        <span class="completion-badge ${isCompleted ? 'completed' : 'not-started'}">
-                            ${isCompleted ? 'Освоено' : 'Не начато'}
-                        </span>
-                    </div>
-                    <p>${station.description}</p>
-                    <div class="station-stats">
-                        <span>Отработано: ${practiceCount} раз</span>
-                        ${isCompleted ? `<span>Лучший результат: ${this.userStats.stations.scores[station.id]}/25</span>` : ''}
-                    </div>
-                    <div class="station-actions">
-                        <button class="button primary practice-station">Тренировать</button>
-                        <button class="button secondary view-checklist">Чек-лист</button>
-                        <button class="button secondary view-video" style="background: var(--accent); border-color: var(--accent);">
-                            <i class="fas fa-video"></i> Видео
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    getStationById(stationId) {
-        const stations = {
-            'cpr': {
-                id: 'cpr',
-                name: 'СЛР',
-                time: '10 минут',
-                description: 'Сердечно-лёгочная реанимация взрослого и ребёнка',
-                icon: 'heartbeat',
-                checklist: [
-                    'Оценка безопасности места происшествия',
-                    'Проверка сознания пациента',
-                    'Вызов скорой помощи',
-                    'Открытие дыхательных путей',
-                    'Проверка дыхания',
-                    'Начало компрессий грудной клетки',
-                    'Искусственное дыхание',
-                    'Соотношение компрессий и вдохов 30:2',
-                    'Использование AED при наличии',
-                    'Продолжение до прибытия помощи'
-                ]
-            },
-            'emergency': {
-                id: 'emergency',
-                name: 'Неотложная помощь',
-                time: '15 минут',
-                description: 'Оказание неотложной помощи при острых состояниях',
-                icon: 'ambulance',
-                checklist: [
-                    'Быстрая оценка состояния пациента',
-                    'Проверка ABC (дыхательные пути, дыхание, кровообращение)',
-                    'Измерение жизненных показателей',
-                    'Сбор краткого анамнеза',
-                    'Выполнение неотложных вмешательств',
-                    'Мониторинг состояния',
-                    'Документирование действий'
-                ]
-            }
-        };
-        return stations[stationId];
-    }
-
-    startStationPractice(stationId) {
-        const station = this.getStationById(stationId);
-        if (!station) return;
-
-        const practiceStationName = document.getElementById('practiceStationName');
-        const stationPractice = document.getElementById('stationPractice');
-        
-        if (practiceStationName) practiceStationName.textContent = `${station.name} - Практическая отработка`;
-        if (stationPractice) stationPractice.classList.remove('hidden');
-        
-        this.renderChecklist(stationId);
-        this.resetStationTimer();
-        
-        const stationScore = document.getElementById('stationScore');
-        if (stationScore) stationScore.textContent = '0/25';
-        
-        this.showToast(`Начата отработка станции: ${station.name}`, 'info');
-    }
-
-    renderChecklist(stationId) {
-        const station = this.getStationById(stationId);
-        if (!station) return;
-
-        const checklistContainer = document.getElementById('stationChecklist');
-        if (!checklistContainer) return;
-
-        checklistContainer.innerHTML = '';
-
-        station.checklist.forEach((item, index) => {
-            const checklistItem = document.createElement('div');
-            checklistItem.className = 'checklist-item';
-            checklistItem.innerHTML = `
-                <input type="checkbox" id="check-${index}">
-                <label for="check-${index}">${item}</label>
-            `;
-
-            const checkbox = checklistItem.querySelector('input');
-            checkbox.addEventListener('change', () => {
-                this.updateStationScore();
-            });
-
-            checklistContainer.appendChild(checklistItem);
-        });
-    }
-
-    updateStationScore() {
-        const checkedItems = document.querySelectorAll('#stationChecklist input:checked').length;
-        const totalItems = document.querySelectorAll('#stationChecklist input').length;
-        const score = Math.round((checkedItems / totalItems) * 25);
-        
-        const stationScore = document.getElementById('stationScore');
-        if (stationScore) stationScore.textContent = `${score}/25`;
-    }
-
-    startStationTimer() {
-        let timeLeft = 600;
-        const timerDisplay = document.getElementById('stationTimer');
-        if (!timerDisplay) return;
-        
-        const timer = setInterval(() => {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            timeLeft--;
-            
-            if (timeLeft < 0) {
-                clearInterval(timer);
-                this.showToast('Время вышло!', 'warning');
-            }
-        }, 1000);
-    }
-
-    resetStationTimer() {
-        const timerDisplay = document.getElementById('stationTimer');
-        if (timerDisplay) timerDisplay.textContent = '10:00';
-    }
-
-    closeStationPractice() {
-        const stationPractice = document.getElementById('stationPractice');
-        if (stationPractice) stationPractice.classList.add('hidden');
-        this.showToast('Практика станции завершена', 'info');
-    }
-
-    submitStationPractice() {
-        const stationScore = document.getElementById('stationScore');
-        const practiceStationName = document.getElementById('practiceStationName');
-        
-        if (!stationScore || !practiceStationName) return;
-        
-        const score = parseInt(stationScore.textContent.split('/')[0]);
-        const stationName = practiceStationName.textContent.split(' - ')[0];
-        const stationId = this.getStationIdFromName(stationName);
-        
-        // Update stats
-        if (!this.userStats.stations.practiceCount[stationId]) {
-            this.userStats.stations.practiceCount[stationId] = 0;
-        }
-        this.userStats.stations.practiceCount[stationId]++;
-        
-        if (!this.userStats.stations.scores[stationId] || score > this.userStats.stations.scores[stationId]) {
-            if (!this.userStats.stations.scores[stationId]) {
-                this.userStats.stations.completed++;
-            }
-            this.userStats.stations.scores[stationId] = score;
-        }
-        
-        // Award XP
-        const xpEarned = score + (this.userStats.stations.practiceCount[stationId] * 5);
-        this.awardXP(xpEarned);
-        
-        this.showToast(`Станция "${stationName}" завершена! Набрано баллов: ${score}/25. Получено ${xpEarned} XP`, 'success');
-        this.closeStationPractice();
-        this.renderStationsGrid();
-        this.updateAllDisplays();
-    }
-
-    getStationIdFromName(stationName) {
-        const stationsMap = {
-            'СЛР': 'cpr',
-            'Неотложная помощь': 'emergency'
-        };
-        return stationsMap[stationName] || 'cpr';
-    }
-
-    showTrainingVideo(stationId) {
-        const station = this.getStationById(stationId);
-        if (!station) return;
-
-        // Создаем модальное окно
-        const videoModal = document.createElement('div');
-        videoModal.className = 'modal';
-        videoModal.style.display = 'flex';
-        videoModal.innerHTML = `
-            <div class="modal-content" style="max-width: 800px;">
-                <div class="modal-header">
-                    <h3>Обувающее видео: ${station.name}</h3>
-                    <button class="modal-close" id="videoModalClose">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="video-container">
-                        <div class="video-placeholder">
-                            <i class="fas fa-video" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
-                            <p>Обучающее видео по станции "${station.name}"</p>
-                            <p class="video-description">Здесь будет размещено обучающее видео с демонстрацией правильного выполнения всех этапов станции.</p>
-                            <div class="video-info">
-                                <div class="video-duration"><i class="fas fa-clock"></i> Длительность: 5-10 минут</div>
-                                <div class="video-quality"><i class="fas fa-hd-video"></i> Качество: HD 1080p</div>
-                            </div>
-                            <button class="button primary" id="startVideo">
-                                <i class="fas fa-play"></i> Начать просмотр
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(videoModal);
-
-        // Добавляем обработчики закрытия
-        const closeModal = () => {
-            videoModal.remove();
-        };
-
-        // Закрытие по крестику
-        const closeBtn = document.getElementById('videoModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closeModal);
-        }
-
-        // Закрытие по клику вне окна
-        videoModal.addEventListener('click', (e) => {
-            if (e.target === videoModal) {
-                closeModal();
-            }
-        });
-
-        // Кнопка воспроизведения
-        const startVideoBtn = document.getElementById('startVideo');
-        if (startVideoBtn) {
-            startVideoBtn.addEventListener('click', () => {
-                this.showToast('Воспроизведение видео начато', 'info');
-            });
-        }
-
-        this.showToast(`Открыто видео для станции: ${station.name}`, 'info');
-    }
-
-    showChecklist(stationId) {
-        const station = this.getStationById(stationId);
-        if (!station) return;
-
-        // Создаем модальное окно
-        const checklistModal = document.createElement('div');
-        checklistModal.className = 'modal';
-        checklistModal.style.display = 'flex';
-        checklistModal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Чек-лист: ${station.name}</h3>
-                    <button class="modal-close" id="checklistModalClose">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="checklist">
-                        ${station.checklist.map((item, index) => `
-                            <div class="checklist-item">
-                                <input type="checkbox" id="modal-check-${index}">
-                                <label for="modal-check-${index}">${item}</label>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="margin-top: 20px; text-align: center;">
-                        <button class="button primary" id="closeChecklistBtn">Закрыть</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(checklistModal);
-
-        // Добавляем обработчики закрытия
-        const closeModal = () => {
-            checklistModal.remove();
-        };
-
-        // Закрытие по крестику
-        const closeBtn = document.getElementById('checklistModalClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closeModal);
-        }
-
-        // Закрытие по кнопке
-        const closeChecklistBtn = document.getElementById('closeChecklistBtn');
-        if (closeChecklistBtn) {
-            closeChecklistBtn.addEventListener('click', closeModal);
-        }
-
-        // Закрытие по клику вне окна
-        checklistModal.addEventListener('click', (e) => {
-            if (e.target === checklistModal) {
-                closeModal();
-            }
-        });
-
-        this.showToast(`Открыт чек-лист для станции: ${station.name}`, 'info');
-    }
-
-    // ========== ЗАДАЧИ ==========
-
-    initializeTasks() {
-        console.log('Initializing tasks...');
-        
-        const startTaskBtn = document.getElementById('startRandomTask');
-        const prevTaskStepBtn = document.getElementById('prevTaskStep');
-        const nextTaskStepBtn = document.getElementById('nextTaskStep');
-        const restartTaskBtn = document.getElementById('restartTask');
-
-        if (startTaskBtn) {
-            startTaskBtn.addEventListener('click', () => {
-                this.startRandomTask();
-            });
-        }
-
-        if (prevTaskStepBtn) {
-            prevTaskStepBtn.addEventListener('click', () => {
-                this.prevTaskStep();
-            });
-        }
-
-        if (nextTaskStepBtn) {
-            nextTaskStepBtn.addEventListener('click', () => {
-                this.nextTaskStep();
-            });
-        }
-
-        if (restartTaskBtn) {
-            restartTaskBtn.addEventListener('click', () => {
-                this.startRandomTask();
-            });
-        }
-    }
-
-    startRandomTask() {
-        const tasks = this.generateSampleTasks();
-        const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
-        
-        this.taskState = {
-            currentTask: randomTask,
-            currentStep: 1,
+        const reviewQuestions = mistakes.map(m => m.question).slice(0, 10);
+        this.state.currentQuiz = {
+            category: 'mistakes',
+            currentQuestion: 0,
+            score: 0,
+            questions: reviewQuestions,
+            startTime: Date.now(),
             userAnswers: [],
-            score: 0
+            markedQuestions: new Set()
         };
 
-        const taskProgress = document.getElementById('taskProgress');
-        const taskContent = document.getElementById('taskContent');
-        const taskResults = document.getElementById('taskResults');
-
-        if (taskProgress) taskProgress.classList.remove('hidden');
-        if (taskContent) taskContent.classList.remove('hidden');
-        if (taskResults) taskResults.classList.add('hidden');
-
-        this.showCurrentTaskStep();
-        this.showToast('Начата новая ситуационная задача', 'info');
-    }
-
-    generateSampleTasks() {
-        return [
-            {
-                id: 1,
-                title: 'Пациент с болью в груди',
-                description: 'Пациент 55 лет обратился с жалобами на давящую боль за грудиной, иррадиирующую в левую руку, длительностью 30 минут. Сопутствующие симптомы: одышка, холодный пот.',
-                steps: [
-                    {
-                        step: 1,
-                        question: 'Какой первоначальный диагностический алгоритм следует применить?',
-                        options: [
-                            { text: 'Немедленное проведение ЭКГ', correct: true },
-                            { text: 'Рентгенография грудной клетки', correct: false }
-                        ]
-                    }
-                ]
-            }
-        ];
-    }
-
-    showCurrentTaskStep() {
-        // Заглушка для демонстрации
-        this.showToast('Функционал задач в разработке', 'info');
-    }
-
-    prevTaskStep() {
-        this.showToast('Функционал задач в разработке', 'info');
-    }
-
-    nextTaskStep() {
-        this.showToast('Функционал задач в разработке', 'info');
-    }
-
-    // ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
-
-    initializeQuickActions() {
-        console.log('Initializing quick actions...');
-        
-        document.addEventListener('click', (e) => {
-            const actionCard = e.target.closest('.action-card');
-            if (actionCard) {
-                const action = actionCard.getAttribute('data-action');
-                this.handleQuickAction(action);
-            }
-        });
-
-        const startDailyChallengeBtn = document.getElementById('startDailyChallenge');
-        if (startDailyChallengeBtn) {
-            startDailyChallengeBtn.addEventListener('click', () => {
-                this.startDailyChallenge();
-            });
-        }
-    }
-
-    initializeMobileFeatures() {
-        const mobileNavToggle = document.getElementById('mobileNavToggle');
-        if (mobileNavToggle) {
-            mobileNavToggle.addEventListener('click', () => {
-                this.toggleMobileNav();
-            });
-        }
-    }
-
-    initializeProfile() {
-        const profileBtn = document.getElementById('profileBtn');
-        const closeProfileModal = document.getElementById('closeProfileModal');
-
-        if (profileBtn) {
-            profileBtn.addEventListener('click', () => {
-                this.showProfileModal();
-            });
-        }
-
-        if (closeProfileModal) {
-            closeProfileModal.addEventListener('click', () => {
-                this.hideProfileModal();
-            });
-        }
-    }
-
-    initializeExamProgress() {
-        const steps = document.querySelectorAll('.step');
-        steps.forEach(step => {
-            step.addEventListener('click', () => {
-                const stepNumber = parseInt(step.getAttribute('data-step'));
-                this.showToast(`Переход к этапу ${stepNumber}`, 'info');
-            });
-        });
-    }
-
-    handleQuickAction(action) {
-        const actions = {
-            'random-theory': () => this.startRandomTest(),
-            'cpr-training': () => this.startStationPractice('cpr'),
-            'emergency': () => this.startStationPractice('emergency'),
-            'checklists': () => this.showChecklist('cpr')
-        };
-        
-        if (actions[action]) {
-            actions[action]();
-        } else {
-            this.showToast('Функция в разработке', 'info');
-        }
-    }
-
-    startDailyChallenge() {
-        this.startRandomTest();
-    }
-
-    toggleMobileNav() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) {
-            sidebar.classList.toggle('mobile-open');
-        }
-    }
-
-    showProfileModal() {
-        const profileModal = document.getElementById('profileModal');
-        if (profileModal) {
-            profileModal.classList.remove('hidden');
-            this.updateProfileModal();
-        }
-    }
-
-    hideProfileModal() {
-        const profileModal = document.getElementById('profileModal');
-        if (profileModal) {
-            profileModal.classList.add('hidden');
-        }
-    }
-
-    updateProfileModal() {
-        // Заглушка для обновления модального окна профиля
-    }
-
-    awardXP(xp) {
-        this.currentXP += xp;
-        this.checkLevelUp();
-    }
-
-    checkLevelUp() {
-        const xpForNextLevel = this.currentLevel * 1000;
-        if (this.currentXP >= xpForNextLevel) {
-            this.currentLevel++;
-            this.showToast(`Поздравляем! Вы достигли уровня ${this.currentLevel}!`, 'success');
-        }
-    }
-
-    updateDailyProgress() {
-        const progress = Math.min((this.dailyProgress.questions / 10) * 100, 100);
-        const dailyProgressElement = document.getElementById('dailyProgress');
-        const dailyProgressText = document.getElementById('dailyProgressText');
-        
-        if (dailyProgressElement) dailyProgressElement.style.width = `${progress}%`;
-        if (dailyProgressText) dailyProgressText.textContent = `${this.dailyProgress.questions}/10`;
-        
-        if (this.dailyProgress.questions >= 10 && !this.dailyProgress.completed) {
-            this.dailyProgress.completed = true;
-            this.dailyProgress.lastCompleted = new Date().toISOString().split('T')[0];
-            this.awardXP(100);
-            this.showToast('Ежедневное задание выполнено! +100 XP', 'success');
-        }
-    }
-
-    updateAllDisplays() {
-        this.updateStatsDisplay();
-        this.updateDashboardDisplay();
-        this.saveProgress();
-    }
-
-    updateStatsDisplay() {
-        const xpValue = document.getElementById('xpValue');
-        const levelValue = document.getElementById('levelValue');
-        const statsTheories = document.getElementById('statsTheories');
-        const statsStations = document.getElementById('statsStations');
-        const statsTasks = document.getElementById('statsTasks');
-
-        if (xpValue) xpValue.textContent = this.currentXP;
-        if (levelValue) levelValue.textContent = this.currentLevel;
-        if (statsTheories) statsTheories.textContent = `${this.userStats.theories.completed}/${this.userStats.theories.total}`;
-        if (statsStations) statsStations.textContent = `${this.userStats.stations.completed}/${this.userStats.stations.total}`;
-        if (statsTasks) statsTasks.textContent = `${this.userStats.tasks.completed}/${this.userStats.tasks.total}`;
-    }
-
-    updateDashboardDisplay() {
-        const dashboardTheories = document.getElementById('dashboardTheories');
-        const completedTheories = document.getElementById('completedTheories');
-        const progressTheories = document.getElementById('progressTheories');
-        const completedStations = document.getElementById('completedStations');
-        const progressStations = document.getElementById('progressStations');
-        const dashboardTasks = document.getElementById('dashboardTasks');
-        const completedTasks = document.getElementById('completedTasks');
-        const progressTasks = document.getElementById('progressTasks');
-        const theoryCount = document.getElementById('theoryCount');
-        const tasksCount = document.getElementById('tasksCount');
-
-        if (dashboardTheories) dashboardTheories.textContent = `${this.userStats.theories.total} вопросов из банка ФМЗА и МедикТест`;
-        if (completedTheories) completedTheories.textContent = this.userStats.theories.completed;
-        if (progressTheories) progressTheories.textContent = `${Math.round((this.userStats.theories.completed / this.userStats.theories.total) * 100)}%`;
-        if (completedStations) completedStations.textContent = this.userStats.stations.completed;
-        if (progressStations) progressStations.textContent = `${Math.round((this.userStats.stations.completed / this.userStats.stations.total) * 100)}%`;
-        if (dashboardTasks) dashboardTasks.textContent = `${this.userStats.tasks.total} клинических задач с решениями`;
-        if (completedTasks) completedTasks.textContent = this.userStats.tasks.completed;
-        if (progressTasks) progressTasks.textContent = `${Math.round((this.userStats.tasks.completed / this.userStats.tasks.total) * 100)}%`;
-        if (theoryCount) theoryCount.textContent = this.userStats.theories.total;
-        if (tasksCount) tasksCount.textContent = this.userStats.tasks.total;
-    }
-
-    updateProgressTab() {
-        // Заглушка для обновления вкладки прогресса
-    }
-
-    checkDailyChallenge() {
-        const today = new Date().toISOString().split('T')[0];
-        if (this.dailyProgress.lastCompleted !== today) {
-            this.dailyProgress.questions = 0;
-            this.dailyProgress.completed = false;
-        }
-        this.updateDailyProgress();
-    }
-
-    showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 5000);
+        this.switchTab('theory');
+        this.showQuizInterface();
+        this.loadQuestion();
+        this.startTimer(120);
     }
 }
 
-// Initialize the application when DOM is loaded
+// Инициализация приложения
+let app;
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing app...');
-    const app = new MedMateApp();
+    app = new MedMateApp();
 });
+
+// Глобальные функции для HTML
+function startActivity(type) {
+    if (app) app.startActivity(type);
+}
+
+function startQuiz(category) {
+    if (app) app.startQuiz(category);
+}
+
+function nextQuestion() {
+    if (app) app.nextQuestion();
+}
+
+function markForReview() {
+    if (app) app.markForReview();
+}
+
+function showAnswerReview() {
+    if (app) app.showAnswerReview();
+}
+
+function closeReview() {
+    if (app) app.closeReview();
+}
+
+function restartQuiz() {
+    if (app) app.restartQuiz();
+}
+
+function resetStation() {
+    if (app) app.resetStation();
+}
+
+function completeStation() {
+    if (app) app.completeStation();
+}
+
+function resetTask() {
+    if (app) app.resetTask();
+}
+
+function checkTaskAnswers() {
+    if (app) app.checkTaskAnswers();
+}
+
+function exportProgress() {
+    if (app) app.exportProgress();
+}
+
+function resetProgress() {
+    if (app) app.resetProgress();
+}
