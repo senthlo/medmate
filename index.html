@@ -8,84 +8,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="mobile-optimized">
-    <!-- Version Selection Screen -->
-    <div class="version-screen" id="versionScreen">
-        <div class="version-logo">
-            <i class="fas fa-graduation-cap"></i>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-button" id="mobileMenuButton">
+        <div class="mobile-menu-dots">
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
-        <h1 class="version-title">MedMate</h1>
-        <p class="version-subtitle">Выберите версию для начала работы</p>
-        
-        <div class="version-selection">
-            <div class="version-card active" data-version="trial">
-                <h3>Пробная версия</h3>
-                <p>Бесплатный доступ к основным функциям</p>
-                <ul class="version-features">
-                    <li><i class="fas fa-check"></i> 50 вопросов</li>
-                    <li><i class="fas fa-check"></i> 1 практическая станция</li>
-                    <li><i class="fas fa-check"></i> Базовая статистика</li>
-                    <li><i class="fas fa-times"></i> Расширенные объяснения</li>
-                    <li><i class="fas fa-times"></i> Все станции ОСКЭ</li>
-                </ul>
-            </div>
-            
-            <div class="version-card premium" data-version="premium">
-                <div class="version-badge">ПРЕМИУМ</div>
-                <h3>Полная версия</h3>
-                <p>Полный доступ ко всем материалам</p>
-                <div class="version-price">555 ₽</div>
-                <ul class="version-features">
-                    <li><i class="fas fa-check"></i> 1800+ вопросов</li>
-                    <li><i class="fas fa-check"></i> Все станции ОСКЭ</li>
-                    <li><i class="fas fa-check"></i> Подробные объяснения</li>
-                    <li><i class="fas fa-check"></i> Расширенная статистика</li>
-                    <li><i class="fas fa-check"></i> Персональный прогресс</li>
-                </ul>
-            </div>
-        </div>
-        
-        <button class="start-button" id="versionButton">Продолжить</button>
-    </div>
+    </button>
 
-    <!-- Welcome Screen -->
-    <div class="welcome-screen" id="welcomeScreen" style="display: none;">
-        <div class="welcome-logo">
-            <i class="fas fa-stethoscope"></i>
-        </div>
-        <h1 class="welcome-title">MedMate</h1>
-        <p class="welcome-subtitle">Подготовка к аккредитации</p>
-        
-        <div class="course-selection">
-            <div class="course-card active" data-course="doctor">
-                <div class="course-icon">
-                    <i class="fas fa-user-md"></i>
-                </div>
-                <h3 class="course-title">Лечебный факультет</h3>
-                <p class="course-description">6 курс - углубленная подготовка</p>
-                <div class="course-details">
-                    <p><i class="fas fa-book"></i> 1800 вопросов</p>
-                    <p><i class="fas fa-clipboard-list"></i> 8 станций ОСКЭ</p>
-                </div>
-            </div>
-            
-            <div class="course-card disabled" data-course="pediatric">
-                <div class="course-icon">
-                    <i class="fas fa-baby"></i>
-                </div>
-                <h3 class="course-title">Педиатрический факультет</h3>
-                <p class="course-description">6 курс - специализированная подготовка</p>
-                <div class="course-details">
-                    <p><i class="fas fa-book"></i> 1600 вопросов</p>
-                    <p><i class="fas fa-clipboard-list"></i> 7 станций ОСКЭ</p>
-                </div>
-            </div>
-        </div>
-        
-        <button class="start-button" id="startButton">Начать обучение</button>
-    </div>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Main Application -->
-    <div class="container" id="mainApp" style="display: none;">
+    <div class="container" id="mainApp">
         <!-- Header -->
         <div class="header">
             <div class="brand">
@@ -111,14 +47,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Mobile Navigation Toggle -->
-        <div class="mobile-nav-toggle" id="mobileNavToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-
-        <!-- Sidebar Overlay -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <!-- Grid Layout -->
         <div class="grid">
@@ -636,34 +564,5 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
-
-    <script>
-        // Version Selection Logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const versionScreen = document.getElementById('versionScreen');
-            const welcomeScreen = document.getElementById('welcomeScreen');
-            const mainApp = document.getElementById('mainApp');
-            const versionButton = document.getElementById('versionButton');
-            const startButton = document.getElementById('startButton');
-
-            versionButton.addEventListener('click', function() {
-                versionScreen.style.display = 'none';
-                welcomeScreen.style.display = 'flex';
-            });
-
-            startButton.addEventListener('click', function() {
-                welcomeScreen.style.display = 'none';
-                mainApp.style.display = 'block';
-            });
-
-            // Prevent clicks on disabled course cards
-            document.querySelectorAll('.course-card.disabled').forEach(card => {
-                card.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    alert('Данное направление появится в ближайшее время!');
-                });
-            });
-        });
-    </script>
 </body>
 </html>
