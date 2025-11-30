@@ -8,142 +8,134 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="mobile-optimized">
-    <!-- Mobile Menu Button -->
-    <button class="mobile-menu-button" id="mobileMenuButton">
-        <div class="mobile-menu-dots">
-            <span></span>
-            <span></span>
-            <span></span>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="brand">
+            <div class="mobile-logo">
+                <i class="fas fa-stethoscope"></i>
+            </div>
+            <div class="mobile-title">
+                <h1>MedMate</h1>
+                <p>Подготовка к аккредитации</p>
+            </div>
         </div>
-    </button>
+        <button class="mobile-menu-button" id="mobileMenuButton">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
 
-    <!-- Sidebar Overlay -->
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-stethoscope"></i>
+            </div>
+            <div class="title">
+                <h2>MedMate</h2>
+                <p>Подготовка к аккредитации</p>
+            </div>
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mobile-nav">
+            <a href="#" class="mobile-tab active" data-tab="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+                <div class="mobile-badge">Новое</div>
+            </a>
+            <a href="#" class="mobile-tab" data-tab="theory">
+                <i class="fas fa-brain"></i>
+                <span>Тестирование</span>
+                <div class="mobile-badge" id="theoryCount">1800</div>
+            </a>
+            <a href="#" class="mobile-tab" data-tab="stations">
+                <i class="fas fa-procedures"></i>
+                <span>Станции ОСКЭ</span>
+                <div class="mobile-badge">5</div>
+            </a>
+            <a href="#" class="mobile-tab" data-tab="tasks">
+                <i class="fas fa-tasks"></i>
+                <span>Практические задачи</span>
+                <div class="mobile-badge" id="tasksCount">150</div>
+            </a>
+            <a href="#" class="mobile-tab" data-tab="progress">
+                <i class="fas fa-chart-line"></i>
+                <span>Прогресс</span>
+            </a>
+        </div>
+
+        <div class="mobile-stats">
+            <h4>Быстрая статистика</h4>
+            <div class="stat-item">
+                <span>Вопросы:</span>
+                <strong id="statsTheories">0/1800</strong>
+            </div>
+            <div class="stat-item">
+                <span>Станции:</span>
+                <strong id="statsStations">0/5</strong>
+            </div>
+            <div class="stat-item">
+                <span>Задачи:</span>
+                <strong id="statsTasks">0/150</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Main Application -->
-    <div class="container" id="mainApp">
-        <!-- Header -->
-        <div class="header">
-            <div class="brand">
-                <div class="logo">
-                    <i class="fas fa-stethoscope"></i>
-                </div>
-                <div class="title">
-                    <h1>MedMate</h1>
-                    <p>Подготовка к аккредитации</p>
-                </div>
-            </div>
-            <div class="controls">
-                <div class="user-type-selector">
-                    <select id="userType">
-                        <option value="doctor">Лечебный факультет</option>
-                    </select>
-                </div>
-                <div class="xp">
-                    <i class="fas fa-star"></i> <span id="xpValue">0</span> XP
-                </div>
-                <div class="level">
-                    <i class="fas fa-level-up-alt"></i> Уровень <span id="levelValue">1</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Grid Layout -->
-        <div class="grid">
-            <!-- Sidebar -->
-            <div class="sidebar" id="sidebar">
-                <div class="nav">
-                    <div class="tab active" data-tab="dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Главная</span>
-                        <div class="badge">Новое</div>
-                    </div>
-                    <div class="tab" data-tab="theory">
-                        <i class="fas fa-brain"></i>
-                        <span>Тестирование</span>
-                        <div class="badge" id="theoryCount">1800</div>
-                    </div>
-                    <div class="tab" data-tab="stations">
-                        <i class="fas fa-procedures"></i>
-                        <span>Станции ОСКЭ</span>
-                        <div class="badge">5</div>
-                    </div>
-                    <div class="tab" data-tab="tasks">
-                        <i class="fas fa-tasks"></i>
-                        <span>Практические задачи</span>
-                        <div class="badge" id="tasksCount">150</div>
-                    </div>
-                    <div class="tab" data-tab="progress">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Прогресс</span>
-                    </div>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="section-header">
+                    <h2>Добро пожаловать в MedMate!</h2>
+                    <p>Ваш персональный помощник в подготовке к аккредитации</p>
                 </div>
 
-                <div class="quick-stats">
-                    <h4>Быстрая статистика</h4>
-                    <div class="stat-item">
-                        <span>Вопросы:</span>
-                        <strong id="statsTheories">0/1800</strong>
+                <!-- Daily Challenge -->
+                <div class="daily-challenge">
+                    <div class="challenge-header">
+                        <h3><i class="fas fa-trophy"></i> Ежедневная цель</h3>
+                        <div class="challenge-reward">+100 XP</div>
                     </div>
-                    <div class="stat-item">
-                        <span>Станции:</span>
-                        <strong id="statsStations">0/5</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Задачи:</span>
-                        <strong id="statsTasks">0/150</strong>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main">
-                <!-- Dashboard Tab -->
-                <div class="tab-content active" id="dashboard">
-                    <div class="section-header">
-                        <h2>Добро пожаловать в MedMate!</h2>
-                        <p>Ваш персональный помощник в подготовке к аккредитации</p>
-                    </div>
-
-                    <!-- Daily Challenge -->
-                    <div class="daily-challenge">
-                        <div class="challenge-header">
-                            <h3><i class="fas fa-trophy"></i> Ежедневная цель</h3>
-                            <div class="challenge-reward">+100 XP</div>
+                    <p>Решите 20 вопросов сегодня чтобы получить бонусные очки опыта</p>
+                    <div class="challenge-progress">
+                        <div class="progress">
+                            <div class="progress-bar" id="dailyProgress" style="width: 0%"></div>
                         </div>
-                        <p>Решите 20 вопросов сегодня чтобы получить бонусные очки опыта</p>
-                        <div class="challenge-progress">
-                            <div class="progress">
-                                <div class="progress-bar" id="dailyProgress" style="width: 0%"></div>
-                            </div>
-                            <span id="dailyProgressText">0/20</span>
-                        </div>
-                        <button class="button primary" id="startDailyChallenge">
-                            <i class="fas fa-play"></i> Начать тренировку
-                        </button>
+                        <span id="dailyProgressText">0/20</span>
                     </div>
+                    <button class="button primary" id="startDailyChallenge">
+                        <i class="fas fa-play"></i> Начать тренировку
+                    </button>
+                </div>
 
-                    <!-- Exam Progress -->
-                    <div class="exam-progress">
-                        <div class="progress-steps">
-                            <div class="step active" data-step="1">
-                                <div class="step-number">1</div>
-                                <span>Теория</span>
-                            </div>
-                            <div class="step" data-step="2">
-                                <div class="step-number">2</div>
-                                <span>Станции</span>
-                            </div>
-                            <div class="step" data-step="3">
-                                <div class="step-number">3</div>
-                                <span>Задачи</span>
-                            </div>
+                <!-- Exam Progress -->
+                <div class="exam-progress">
+                    <div class="progress-steps">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <span>Теория</span>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <span>Станции</span>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <span>Задачи</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Exam Cards -->
-                    <div class="exam-cards">
-                        <div class="exam-card large start-exam" data-exam="theory">
+                <!-- Exam Cards -->
+                <div class="exam-cards">
+                    <div class="exam-card start-exam" data-exam="theory">
+                        <div class="exam-card-content">
                             <div class="exam-icon">
                                 <i class="fas fa-file-alt"></i>
                             </div>
@@ -161,10 +153,14 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="exam-action">
                             <button class="button primary">Начать тест</button>
                         </div>
+                    </div>
 
-                        <div class="exam-card large start-exam" data-exam="stations">
+                    <div class="exam-card start-exam" data-exam="stations">
+                        <div class="exam-card-content">
                             <div class="exam-icon">
                                 <i class="fas fa-procedures"></i>
                             </div>
@@ -182,10 +178,14 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="exam-action">
                             <button class="button primary">Тренировать</button>
                         </div>
+                    </div>
 
-                        <div class="exam-card large start-exam" data-exam="tasks">
+                    <div class="exam-card start-exam" data-exam="tasks">
+                        <div class="exam-card-content">
                             <div class="exam-icon">
                                 <i class="fas fa-tasks"></i>
                             </div>
@@ -203,353 +203,235 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="exam-action">
                             <button class="button primary">Решать задачи</button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Quick Actions -->
-                    <div class="quick-actions">
-                        <h3>Быстрый старт</h3>
-                        <div class="action-cards">
-                            <div class="action-card" id="quickTheory">
-                                <i class="fas fa-brain"></i>
-                                <span>Случайный тест</span>
-                            </div>
-                            <div class="action-card" id="quickStation">
-                                <i class="fas fa-comment-medical"></i>
-                                <span>Сбор анамнеза</span>
-                            </div>
-                            <div class="action-card" id="quickTask">
-                                <i class="fas fa-lungs"></i>
-                                <span>Задача по ХОБЛ</span>
-                            </div>
-                            <div class="action-card" id="quickProgress">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Мой прогресс</span>
-                            </div>
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>Быстрый старт</h3>
+                    <div class="action-cards">
+                        <a href="#" class="action-card" id="quickTheory">
+                            <i class="fas fa-brain"></i>
+                            <span>Случайный тест</span>
+                        </a>
+                        <a href="#" class="action-card" id="quickStation">
+                            <i class="fas fa-comment-medical"></i>
+                            <span>Сбор анамнеза</span>
+                        </a>
+                        <a href="#" class="action-card" id="quickTask">
+                            <i class="fas fa-lungs"></i>
+                            <span>Задача по ХОБЛ</span>
+                        </a>
+                        <a href="#" class="action-card" id="quickProgress">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Мой прогресс</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theory Tab -->
+            <div class="tab-content" id="theory">
+                <div class="section-header">
+                    <h2>Тестирование</h2>
+                    <p>Проверьте свои знания с помощью вопросов из банка ФМЗА</p>
+                </div>
+
+                <!-- Theory Stats -->
+                <div class="theory-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Эффективность</h3>
+                            <div class="stat-value" id="efficiencyValue">0%</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Средняя скорость</h3>
+                            <div class="stat-value" id="speedValue">0 сек</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Лучшая серия</h3>
+                            <div class="stat-value" id="bestStreak">0</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Theory Tab -->
-                <div class="tab-content" id="theory">
-                    <div class="section-header">
-                        <h2>Тестирование</h2>
-                        <p>Проверьте свои знания с помощью вопросов из банка ФМЗА</p>
-                    </div>
+                <!-- Start Test Button -->
+                <button class="button primary" id="startRandomTest">
+                    <i class="fas fa-play"></i> Начать случайный тест
+                </button>
 
-                    <!-- Theory Stats -->
-                    <div class="theory-stats">
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-bullseye"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Эффективность</h3>
-                                <div class="stat-value" id="efficiencyValue">0%</div>
-                                <div class="progress">
-                                    <div class="progress-bar" id="efficiencyProgress" style="width: 0%"></div>
-                                </div>
-                            </div>
+                <!-- Quiz Container -->
+                <div class="quiz-container hidden" id="quizContainer">
+                    <div class="quiz-header">
+                        <div class="quiz-progress">
+                            <span>Вопрос</span>
+                            <strong id="currentQuestion">1</strong> из <strong id="totalQuestions">10</strong>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Средняя скорость</h3>
-                                <div class="stat-value" id="speedValue">0 сек</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Лучшая серия</h3>
-                                <div class="stat-value" id="bestStreak">0</div>
-                            </div>
+                        <div class="quiz-timer">
+                            <i class="fas fa-clock"></i>
+                            <span id="quizTimer">30:00</span>
                         </div>
                     </div>
 
-                    <!-- Theory Controls -->
-                    <div class="theory-controls">
-                        <button class="button primary" id="startRandomTest">
-                            <i class="fas fa-play"></i> Начать случайный тест
-                        </button>
-                    </div>
-
-                    <!-- Quiz Container -->
-                    <div class="quiz-container hidden" id="quizContainer">
-                        <div class="quiz-header">
-                            <div class="quiz-progress">
-                                <span>Вопрос</span>
-                                <strong id="currentQuestion">1</strong> из <strong id="totalQuestions">10</strong>
-                            </div>
-                            <div class="quiz-timer">
-                                <i class="fas fa-clock"></i>
-                                <span id="quizTimer">30:00</span>
-                            </div>
+                    <div class="quiz-card">
+                        <div class="question-header">
+                            <h3 class="question" id="quizQuestion"></h3>
+                            <span class="difficulty easy" id="questionDifficulty">Легкая</span>
                         </div>
 
-                        <div class="quiz-card">
-                            <div class="question-header">
-                                <h3 class="question" id="quizQuestion"></h3>
-                                <span class="difficulty easy" id="questionDifficulty">Легкая</span>
-                            </div>
-
-                            <div class="options" id="quizOptions">
-                                <!-- Options will be inserted here by JavaScript -->
-                            </div>
-
-                            <div class="quiz-explanation hidden" id="quizExplanation">
-                                <h5><i class="fas fa-lightbulb"></i> Объяснение</h5>
-                                <p id="explanationText"></p>
-                            </div>
-
-                            <div class="quiz-actions">
-                                <button class="button secondary" id="prevQuestion">
-                                    <i class="fas fa-arrow-left"></i> Назад
-                                </button>
-                                <div>
-                                    <button class="button secondary" id="skipQuestion">Пропустить</button>
-                                    <button class="button primary" id="nextQuestion" disabled>
-                                        Далее <i class="fas fa-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="options" id="quizOptions">
+                            <!-- Options will be inserted here by JavaScript -->
                         </div>
-                    </div>
 
-                    <!-- Quiz Results -->
-                    <div class="quiz-results hidden" id="quizResults">
-                        <!-- Results will be inserted here by JavaScript -->
+                        <div class="quiz-actions">
+                            <button class="button secondary" id="prevQuestion">
+                                <i class="fas fa-arrow-left"></i> Назад
+                            </button>
+                            <button class="button primary" id="nextQuestion" disabled>
+                                Далее <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Stations Tab -->
-                <div class="tab-content" id="stations">
-                    <div class="section-header">
-                        <h2>Практические станции ОСКЭ</h2>
-                        <p>Отработка практических навыков на станциях объективного структурированного клинического экзамена</p>
-                    </div>
+                <!-- Quiz Results -->
+                <div class="quiz-results hidden" id="quizResults">
+                    <!-- Results will be inserted here by JavaScript -->
+                </div>
+            </div>
 
-                    <div class="stations-grid" id="stationsGrid">
-                        <!-- Stations will be inserted here by JavaScript -->
-                    </div>
+            <!-- Stations Tab -->
+            <div class="tab-content" id="stations">
+                <div class="section-header">
+                    <h2>Практические станции ОСКЭ</h2>
+                    <p>Отработка практических навыков на станциях объективного структурированного клинического экзамена</p>
                 </div>
 
-                <!-- Tasks Tab -->
-                <div class="tab-content" id="tasks">
-                    <div class="section-header">
-                        <h2>Практические задачи</h2>
-                        <p>Решение клинических задач с последовательным принятием решений</p>
-                    </div>
+                <div class="stations-grid" id="stationsGrid">
+                    <!-- Stations will be inserted here by JavaScript -->
+                </div>
+            </div>
 
-                    <div class="tasks-grid" id="tasksGrid">
-                        <div class="task-card available" data-task="copd">
+            <!-- Tasks Tab -->
+            <div class="tab-content" id="tasks">
+                <div class="section-header">
+                    <h2>Практические задачи</h2>
+                    <p>Решение клинических задач с последовательным принятием решений</p>
+                </div>
+
+                <div class="tasks-grid">
+                    <div class="task-card available" data-task="copd">
+                        <div class="station-header">
                             <div class="task-icon">
                                 <i class="fas fa-lungs"></i>
                             </div>
-                            <h3>ХОБЛ - диагностика и лечение</h3>
-                            <p>Пациент 54 лет с одышкой и кашлем</p>
-                            <div class="task-meta">
-                                <span>12 вопросов</span>
-                                <span>30 минут</span>
+                            <div class="station-info">
+                                <h3>ХОБЛ - диагностика и лечение</h3>
+                                <span class="station-time">30 минут</span>
                             </div>
-                            <div class="task-status available">Доступно</div>
                         </div>
+                        <p>Пациент 54 лет с одышкой и кашлем</p>
+                        <div class="station-status available">Доступно</div>
+                    </div>
 
-                        <div class="task-card coming-soon">
+                    <div class="task-card coming-soon">
+                        <div class="station-header">
                             <div class="task-icon">
                                 <i class="fas fa-heart"></i>
                             </div>
-                            <h3>Острый коронарный синдром</h3>
-                            <p>Пациент 65 лет с интенсивной загрудинной болью</p>
-                            <div class="task-meta">
-                                <span>4 этапа</span>
-                                <span>Средняя сложность</span>
+                            <div class="station-info">
+                                <h3>Острый коронарный синдром</h3>
+                                <span class="station-time">25 минут</span>
                             </div>
-                            <div class="task-status coming-soon">Скоро появится</div>
                         </div>
+                        <p>Пациент 65 лет с интенсивной загрудинной болью</p>
+                        <div class="station-status coming-soon">Скоро появится</div>
+                    </div>
 
-                        <div class="task-card coming-soon">
+                    <div class="task-card coming-soon">
+                        <div class="station-header">
                             <div class="task-icon">
                                 <i class="fas fa-brain"></i>
                             </div>
-                            <h3>Острое нарушение мозгового кровообращения</h3>
-                            <p>Пациент с внезапной слабостью в правых конечностях</p>
-                            <div class="task-meta">
-                                <span>5 этапов</span>
-                                <span>Высокая сложность</span>
+                            <div class="station-info">
+                                <h3>Острое нарушение мозгового кровообращения</h3>
+                                <span class="station-time">35 минут</span>
                             </div>
-                            <div class="task-status coming-soon">Скоро появится</div>
                         </div>
-
-                        <div class="task-card coming-soon">
-                            <div class="task-icon">
-                                <i class="fas fa-vial"></i>
-                            </div>
-                            <h3>Сахарный диабет</h3>
-                            <p>Пациент с гипергликемией и кетоацидозом</p>
-                            <div class="task-meta">
-                                <span>4 этапа</span>
-                                <span>Средняя сложность</span>
-                            </div>
-                            <div class="task-status coming-soon">Скоро появится</div>
-                        </div>
+                        <p>Пациент с внезапной слабостью в правых конечностях</p>
+                        <div class="station-status coming-soon">Скоро появится</div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Progress Tab -->
-                <div class="tab-content" id="progress">
-                    <div class="section-header">
-                        <h2>Ваш прогресс</h2>
-                        <p>Отслеживайте свои успехи в подготовке к аккредитации</p>
+            <!-- Progress Tab -->
+            <div class="tab-content" id="progress">
+                <div class="section-header">
+                    <h2>Ваш прогресс</h2>
+                    <p>Отслеживайте свои успехи в подготовке к аккредитации</p>
+                </div>
+
+                <div class="progress-content">
+                    <!-- Progress Overview -->
+                    <div class="overview-card">
+                        <div class="overview-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="overview-info">
+                            <h3>Общий прогресс подготовки</h3>
+                            <div class="overview-progress">
+                                <div class="progress">
+                                    <div class="progress-bar" id="overallProgress" style="width: 0%"></div>
+                                </div>
+                                <span id="overallProgressText">0%</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="progress-content">
-                        <!-- Progress Overview -->
-                        <div class="progress-overview">
-                            <div class="overview-card">
-                                <div class="overview-icon">
-                                    <i class="fas fa-trophy"></i>
-                                </div>
-                                <div class="overview-info">
-                                    <h3>Общий прогресс подготовки</h3>
-                                    <div class="overview-progress">
-                                        <div class="progress">
-                                            <div class="progress-bar" id="overallProgress" style="width: 0%"></div>
-                                        </div>
-                                        <span id="overallProgressText">0%</span>
-                                    </div>
-                                </div>
+                    <!-- Quick Stats -->
+                    <div class="theory-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Вопросы пройдено</h3>
+                                <div class="stat-value" id="progressTheoriesCompleted">0</div>
                             </div>
                         </div>
-
-                        <!-- Progress Stats -->
-                        <div class="progress-stats">
-                            <div class="progress-stat-card">
-                                <div class="progress-stat-icon">
-                                    <i class="fas fa-brain"></i>
-                                </div>
-                                <div class="progress-stat-info">
-                                    <h3>Тестирование</h3>
-                                    <div class="progress-stat-numbers">
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTheoriesCompleted">0</span>
-                                            <span class="label">Пройдено вопросов</span>
-                                        </div>
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTheoriesAccuracy">0%</span>
-                                            <span class="label">Точность</span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-procedures"></i>
                             </div>
-
-                            <div class="progress-stat-card">
-                                <div class="progress-stat-icon">
-                                    <i class="fas fa-procedures"></i>
-                                </div>
-                                <div class="progress-stat-info">
-                                    <h3>Станции ОСКЭ</h3>
-                                    <div class="progress-stat-numbers">
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressStationsCompleted">0</span>
-                                            <span class="label">Освоено станций</span>
-                                        </div>
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressStationsScore">0</span>
-                                            <span class="label">Средний балл</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="progress-stat-card">
-                                <div class="progress-stat-icon">
-                                    <i class="fas fa-tasks"></i>
-                                </div>
-                                <div class="progress-stat-info">
-                                    <h3>Практические задачи</h3>
-                                    <div class="progress-stat-numbers">
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTasksCompleted">0</span>
-                                            <span class="label">Решено задач</span>
-                                        </div>
-                                        <div class="progress-stat-number">
-                                            <span class="number" id="progressTasksAccuracy">0%</span>
-                                            <span class="label">Точность</span>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="stat-info">
+                                <h3>Станций освоено</h3>
+                                <div class="stat-value" id="progressStationsCompleted">0</div>
                             </div>
                         </div>
-
-                        <!-- Progress Chart -->
-                        <div class="progress-chart">
-                            <h3>Активность за последние 7 дней</h3>
-                            <div class="chart-container">
-                                <canvas id="progressChart"></canvas>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-tasks"></i>
                             </div>
-                        </div>
-
-                        <!-- Achievements -->
-                        <div class="achievements-section">
-                            <h3>Достижения</h3>
-                            <div class="achievements-grid">
-                                <div class="achievement locked" data-achievement="first-test">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-graduation-cap"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Первый тест</h4>
-                                        <p>Пройдите свой первый тест</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-
-                                <div class="achievement locked" data-achievement="theory-expert">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-brain"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Эксперт теории</h4>
-                                        <p>Пройдите 1000 вопросов</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-
-                                <div class="achievement locked" data-achievement="cpr-master">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-heartbeat"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Мастер СЛР</h4>
-                                        <p>Наберите 20+ баллов на станции СЛР</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-
-                                <div class="achievement locked" data-achievement="task-master">
-                                    <div class="achievement-icon">
-                                        <i class="fas fa-trophy"></i>
-                                    </div>
-                                    <div class="achievement-info">
-                                        <h4>Мастер задач</h4>
-                                        <p>Решите 50 практических задач</p>
-                                    </div>
-                                    <div class="achievement-status locked">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
+                            <div class="stat-info">
+                                <h3>Задач решено</h3>
+                                <div class="stat-value" id="progressTasksCompleted">0</div>
                             </div>
                         </div>
                     </div>
@@ -562,7 +444,6 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
