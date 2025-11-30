@@ -51,6 +51,7 @@ class MedMateApp {
 
     initializeApp() {
         this.loadProgress();
+        this.initializeMobileMenu();
         this.initializeTabs();
         this.initializeUserType();
         this.initializeExamProgress();
@@ -62,6 +63,51 @@ class MedMateApp {
         this.checkDailyChallenge();
         
         console.log('MedMate App initialized successfully!');
+    }
+
+    // Новый метод для мобильного меню
+    initializeMobileMenu() {
+        const menuButton = document.getElementById('mobileMenuButton');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        menuButton.addEventListener('click', () => {
+            this.toggleMobileMenu();
+        });
+
+        overlay.addEventListener('click', () => {
+            this.closeMobileMenu();
+        });
+
+        // Закрываем меню при клике на таб
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.closeMobileMenu();
+            });
+        });
+    }
+
+    toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        this.mobileMenuOpen = !this.mobileMenuOpen;
+        
+        if (this.mobileMenuOpen) {
+            sidebar.classList.add('mobile-open');
+            overlay.classList.add('mobile-open');
+        } else {
+            this.closeMobileMenu();
+        }
+    }
+
+    closeMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('mobile-open');
+        this.mobileMenuOpen = false;
     }
 
     loadProgress() {
@@ -148,6 +194,15 @@ class MedMateApp {
         this.updateElementText('#completedTheories', this.userStats.theories.completed);
         this.updateElementText('#completedStations', this.userStats.stations.completed);
         this.updateElementText('#completedTasks', this.userStats.tasks.completed);
+        
+        // Calculate progress percentages
+        const theoryProgress = Math.round((this.userStats.theories.completed / this.userStats.theories.total) * 100);
+        const stationProgress = Math.round((this.userStats.stations.completed / this.userStats.stations.total) * 100);
+        const taskProgress = Math.round((this.userStats.tasks.completed / this.userStats.tasks.total) * 100);
+        
+        this.updateElementText('#progressTheories', `${theoryProgress}%`);
+        this.updateElementText('#progressStations', `${stationProgress}%`);
+        this.updateElementText('#progressTasks', `${taskProgress}%`);
     }
 
     // Theory Section
@@ -373,6 +428,10 @@ class MedMateApp {
         this.userStats.theories.completed += total;
         this.userStats.theories.correct += correctAnswers;
         this.currentXP += correctAnswers * 10;
+        
+        // Update daily progress
+        this.dailyProgress.questions += total;
+        this.updateDailyProgress();
         
         // Show detailed results
         this.showDetailedQuizResults();
@@ -797,7 +856,7 @@ class MedMateApp {
         const task = {
             name: 'ХОБЛ - диагностика и лечение',
             description: 'Пациент 54 лет. Жалобы на одышку при физической нагрузке средней интенсивности, кашель с небольшим количеством мокроты, быструю утомляемость. Кашель беспокоит в течение 10 лет, ухудшения состояния отмечает весной и осенью. Последние полгода отмечает одышку при физической нагрузке. Курит в течение 20 лет до 15-20 сигарет в день.',
-            timeLimit: 1800, // 30 минут
+            timeLimit: 1800, // 30 minutes
             questions: [
                 {
                     question: "Необходимым для постановки диагноза лабораторным методом обследования является:",
@@ -836,122 +895,6 @@ class MedMateApp {
                     correct: 1,
                     explanation: "Клиническая картина (длительный кашель, прогрессирующая одышка, курение в анамнезе) и данные спирометрии (необратимая обструкция) характерны для ХОБЛ.",
                     results: "Диагноз: ХОБЛ, стадия 2 (средней степени тяжести) по GOLD."
-                },
-                {
-                    question: "Основной причиной развития заболевания у данного пациента является:",
-                    options: [
-                        "Профессиональные вредности",
-                        "Курение табака", 
-                        "Загрязнение атмосферного воздуха",
-                        "Рецидивирующие респираторные инфекции"
-                    ],
-                    correct: 1,
-                    explanation: "Курение - основной фактор риска развития ХОБЛ. 20-летний стаж курения 15-20 сигарет в день является значимым фактором.",
-                    results: "Индекс курящего человека = 20 пачек/лет (расчет: 20 лет × 1 пачка/день)."
-                },
-                {
-                    question: "К нефармакологическим методам лечения данного пациента относятся (выберите 3 правильных ответа):",
-                    options: [
-                        "Отказ от курения",
-                        "Длительная кислородотерапия", 
-                        "Респираторная реабилитация",
-                        "Ингаляционные глюкокортикостероиды",
-                        "Вакцинация против гриппа и пневмококка",
-                        "Бронхолитики короткого действия"
-                    ],
-                    correct: [0, 2, 4],
-                    explanation: "Отказ от курения - наиболее эффективный метод замедления прогрессирования ХОБЛ. Респираторная реабилитация улучшает качество жизни. Вакцинация предотвращает exacerbations.",
-                    results: "Рекомендована программа отказа от курения, направление в центр респираторной реабилитации, вакцинация проведена."
-                },
-                {
-                    question: "Препаратами первой линии для базисной терапии ХОБЛ у данного пациента являются:",
-                    options: [
-                        "Ингаляционные глюкокортикостероиды",
-                        "Длительно действующие бронходилататоры", 
-                        "Муколитики",
-                        "Системные глюкокортикостероиды"
-                    ],
-                    correct: 1,
-                    explanation: "Длительно действующие бронходилататоры (LABA и/или LAMA) - препараты первой линии для лечения ХОБЛ стадии 2 и выше.",
-                    results: "Назначен тиотропиум 18 мкг 1 раз в день ингаляционно."
-                },
-                {
-                    question: "При обострении ХОБЛ показано назначение (выберите 3 правильных ответа):",
-                    options: [
-                        "Антибиотики",
-                        "Системные глюкокортикостероиды", 
-                        "Бронходилататоры короткого действия",
-                        "Противовирусные препараты",
-                        "Муколитики",
-                        "Иммуномодуляторы"
-                    ],
-                    correct: [0, 1, 2],
-                    explanation: "Антибиотики - при признаках бактериальной инфекции. Системные ГКС уменьшают воспаление. Бронходилататоры короткого действия купируют бронхообструкцию.",
-                    results: "При exacerbation: амоксициллин/клавуланат, преднизолон 30 мг/сут 7-10 дней, сальбутамол по потребности."
-                },
-                {
-                    question: "Критерием для назначения длительной кислородотерапии является:",
-                    options: [
-                        "PaO₂ < 55 мм рт.ст. или SaO₂ < 88%",
-                        "PaO₂ 55-60 мм рт.ст. при наличии лёгочного сердца", 
-                        "Одышка при физической нагрузке",
-                        "Снижение толерантности к физической нагрузке"
-                    ],
-                    correct: 0,
-                    explanation: "Длительная кислородотерапия показана при PaO₂ < 55 мм рт.ст. или SaO₂ < 88% в покое.",
-                    results: "Газовый анализ артериальной крови: PaO₂ = 52 мм рт.ст., PaCO₂ = 48 мм рт.ст., SaO₂ = 86%. Показана длительная кислородотерапия."
-                },
-                {
-                    question: "Наиболее вероятное осложнение ХОБЛ у данного пациента:",
-                    options: [
-                        "Лёгочное сердце",
-                        "Бронхоэктазы", 
-                        "Пневмоторакс",
-                        "Рак лёгкого"
-                    ],
-                    correct: 0,
-                    explanation: "Хроническая гипоксия при ХОБЛ приводит к легочной гипертензии и формированию легочного сердца.",
-                    results: "ЭхоКГ: признаки легочной гипертензии - давление в легочной артерии 45 мм рт.ст., гипертрофия правого желудочка."
-                },
-                {
-                    question: "Реабилитационные мероприятия при ХОБЛ включают (выберите 3 правильных ответа):",
-                    options: [
-                        "Дыхательную гимнастику",
-                        "Физические тренировки", 
-                        "Нутритивную поддержку",
-                        "Психотерапию",
-                        "Хирургическое лечение",
-                        "Лучевую терапию"
-                    ],
-                    correct: [0, 1, 2],
-                    explanation: "Дыхательная гимнастика улучшает вентиляцию. Физические тренировки повышают толерантность к нагрузке. Нутритивная поддержка важна при кахексии.",
-                    results: "Разработана индивидуальная программа реабилитации: дыхательные упражнения 2 раза/день, ходьба 30 мин/день, высококалорийная диета."
-                },
-                {
-                    question: "Цели лечения ХОБЛ включают (выберите 3 правильных ответа):",
-                    options: [
-                        "Устранение обструкции",
-                        "Предотвращение прогрессирования", 
-                        "Улучшение переносимости физических нагрузок",
-                        "Полное излечение заболевания",
-                        "Профилактика и лечение exacerbations",
-                        "Снижение смертности"
-                    ],
-                    correct: [1, 2, 4],
-                    explanation: "ХОБЛ - прогрессирующее заболевание, полное излечение невозможно. Цели: замедлить прогрессирование, улучшить качество жизни, предотвратить exacerbations.",
-                    results: "Тактика лечения направлена на достижение контрольных точек: снижение частоты exacerbations, улучшение толерантности к нагрузке."
-                },
-                {
-                    question: "Критерием эффективности лечения является:",
-                    options: [
-                        "Увеличение расстояния в тесте с 6-минутной ходьбой",
-                        "Уменьшение одышки по шкале mMRC", 
-                        "Улучшение показателей спирометрии",
-                        "Все перечисленные"
-                    ],
-                    correct: 3,
-                    explanation: "Комплексная оценка эффективности включает функциональные показатели (тест с 6-минутной ходьбой), субъективные ощущения (шкала mMRC) и объективные данные (спирометрия).",
-                    results: "Через 3 месяца: дистанция 6-минутной ходьбы увеличилась на 45 м, одышка mMRC снизилась с 3 до 2 баллов, ОФВ1 стабилен."
                 }
             ]
         };
@@ -980,6 +923,7 @@ class MedMateApp {
                         <p>${task.description}</p>
                     </div>
                     <div id="taskQuestionsContainer"></div>
+                    <div class="task-results-container" id="taskResultsContainer" style="display: none;"></div>
                     <div class="task-actions" style="margin-top: 20px;">
                         <button class="button secondary" id="prevTaskQuestion">Назад</button>
                         <button class="button primary" id="nextTaskQuestion">Далее</button>
@@ -996,7 +940,8 @@ class MedMateApp {
             userAnswers: new Array(task.questions.length).fill(null),
             modal: modal,
             timeLeft: task.timeLimit,
-            timer: null
+            timer: null,
+            showResults: false // Флаг для показа результатов
         };
         
         this.startTaskTimer();
@@ -1004,50 +949,38 @@ class MedMateApp {
         this.attachTaskModalListeners(modal);
     }
 
-    startTaskTimer() {
-        this.updateTaskTimer();
-        this.currentTask.timer = setInterval(() => {
-            this.currentTask.timeLeft--;
-            this.updateTaskTimer();
-            
-            if (this.currentTask.timeLeft <= 0) {
-                this.finishTask();
-            }
-        }, 1000);
-    }
-
-    updateTaskTimer() {
-        const minutes = Math.floor(this.currentTask.timeLeft / 60);
-        const seconds = this.currentTask.timeLeft % 60;
-        const timerElement = this.currentTask.modal.querySelector('#taskTimer');
-        if (timerElement) {
-            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (this.currentTask.timeLeft < 300) { // 5 minutes warning
-                timerElement.classList.add('timer-warning');
-            }
-        }
-    }
-
     displayTaskQuestion(index) {
         const container = this.currentTask.modal.querySelector('#taskQuestionsContainer');
+        const resultsContainer = this.currentTask.modal.querySelector('#taskResultsContainer');
         const question = this.currentTask.questions[index];
+        
+        // Скрываем результаты при переходе к новому вопросу
+        resultsContainer.style.display = 'none';
+        container.style.display = 'block';
+        this.currentTask.showResults = false;
         
         let optionsHTML = '';
         if (Array.isArray(question.correct)) {
-            optionsHTML = question.options.map((option, optIndex) => `
-                <label class="task-option" style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; margin-bottom: 8px;">
-                    <input type="checkbox" name="question-${index}" value="${optIndex}" style="width: 18px; height: 18px;">
-                    <span>${option}</span>
-                </label>
-            `).join('');
+            optionsHTML = question.options.map((option, optIndex) => {
+                const isChecked = this.currentTask.userAnswers[index]?.includes(optIndex);
+                return `
+                    <label class="task-option" style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; margin-bottom: 8px;">
+                        <input type="checkbox" name="question-${index}" value="${optIndex}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        <span>${option}</span>
+                    </label>
+                `;
+            }).join('');
         } else {
-            optionsHTML = question.options.map((option, optIndex) => `
-                <label class="task-option" style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; margin-bottom: 8px;">
-                    <input type="radio" name="question-${index}" value="${optIndex}" style="width: 18px; height: 18px;">
-                    <span>${option}</span>
-                </label>
-            `).join('');
+            const currentAnswer = this.currentTask.userAnswers[index];
+            optionsHTML = question.options.map((option, optIndex) => {
+                const isChecked = currentAnswer === optIndex;
+                return `
+                    <label class="task-option" style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; margin-bottom: 8px;">
+                        <input type="radio" name="question-${index}" value="${optIndex}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px;">
+                        <span>${option}</span>
+                    </label>
+                `;
+            }).join('');
         }
         
         container.innerHTML = `
@@ -1060,20 +993,44 @@ class MedMateApp {
             </div>
         `;
         
-        // Показываем результаты анализов после загрузки вопроса
-        setTimeout(() => {
-            this.showTaskResults(question, this.currentTask.modal);
-        }, 100);
-        
         this.updateTaskNavigation();
+        
+        // Добавляем обработчики для вариантов ответов
+        this.attachTaskOptionListeners(index);
     }
 
-    // Новый метод для отображения результатов анализов в задачах
-    showTaskResults(question, modal) {
-        if (question.results) {
-            const resultsElement = document.createElement('div');
-            resultsElement.className = 'task-results';
-            resultsElement.innerHTML = `
+    attachTaskOptionListeners(questionIndex) {
+        const container = this.currentTask.modal.querySelector('#taskQuestionsContainer');
+        const question = this.currentTask.questions[questionIndex];
+        
+        if (Array.isArray(question.correct)) {
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    this.saveCurrentAnswer();
+                    this.showTaskResultsAfterAnswer(questionIndex);
+                });
+            });
+        } else {
+            const radios = container.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    this.saveCurrentAnswer();
+                    this.showTaskResultsAfterAnswer(questionIndex);
+                });
+            });
+        }
+    }
+
+    showTaskResultsAfterAnswer(questionIndex) {
+        const container = this.currentTask.modal.querySelector('#taskQuestionsContainer');
+        const resultsContainer = this.currentTask.modal.querySelector('#taskResultsContainer');
+        const question = this.currentTask.questions[questionIndex];
+        
+        if (!this.currentTask.showResults && this.currentTask.userAnswers[questionIndex] !== null) {
+            // Показываем результаты обследования
+            resultsContainer.style.display = 'block';
+            resultsContainer.innerHTML = `
                 <div style="background: var(--bg-secondary); padding: 15px; border-radius: var(--radius); margin-top: 15px; border-left: 4px solid var(--primary);">
                     <h6 style="margin: 0 0 10px 0; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-file-medical-alt"></i> Результаты обследования
@@ -1082,10 +1039,7 @@ class MedMateApp {
                 </div>
             `;
             
-            const questionElement = modal.querySelector('.task-question');
-            if (questionElement) {
-                questionElement.appendChild(resultsElement);
-            }
+            this.currentTask.showResults = true;
         }
     }
 
@@ -1148,6 +1102,31 @@ class MedMateApp {
             'Завершить' : 'Далее';
     }
 
+    startTaskTimer() {
+        this.updateTaskTimer();
+        this.currentTask.timer = setInterval(() => {
+            this.currentTask.timeLeft--;
+            this.updateTaskTimer();
+            
+            if (this.currentTask.timeLeft <= 0) {
+                this.finishTask();
+            }
+        }, 1000);
+    }
+
+    updateTaskTimer() {
+        const minutes = Math.floor(this.currentTask.timeLeft / 60);
+        const seconds = this.currentTask.timeLeft % 60;
+        const timerElement = this.currentTask.modal.querySelector('#taskTimer');
+        if (timerElement) {
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (this.currentTask.timeLeft < 300) { // 5 minutes warning
+                timerElement.classList.add('timer-warning');
+            }
+        }
+    }
+
     finishTask() {
         if (this.currentTask.timer) {
             clearInterval(this.currentTask.timer);
@@ -1184,10 +1163,10 @@ class MedMateApp {
                 
                 <div class="results-summary" style="background: var(--bg-secondary); padding: 20px; border-radius: var(--radius); margin-bottom: 25px; text-align: center;">
                     <div style="font-size: 18px; margin-bottom: 10px;">
-                        Правильных ответов: <strong style="color: ${correctAnswers >= 9 ? 'var(--success)' : 'var(--error)'};">${correctAnswers}/${totalQuestions}</strong>
+                        Правильных ответов: <strong style="color: ${correctAnswers >= 2 ? 'var(--success)' : 'var(--error)'};">${correctAnswers}/${totalQuestions}</strong>
                     </div>
                     <div style="font-size: 16px; color: var(--text-secondary);">
-                        ${correctAnswers >= 9 ? 'Задача успешно решена!' : 'Для успешного решения необходимо 9/12 правильных ответов'}
+                        ${correctAnswers >= 2 ? 'Задача успешно решена!' : 'Попробуйте еще раз!'}
                     </div>
                 </div>
 
@@ -1281,7 +1260,7 @@ class MedMateApp {
         modal.querySelector('#closeTaskResults').addEventListener('click', () => {
             modal.remove();
             this.showToast(`Задача завершена! Правильных ответов: ${correctAnswers}/${totalQuestions}`, 
-                          correctAnswers >= 9 ? 'success' : 'info');
+                          correctAnswers >= 2 ? 'success' : 'info');
             this.updateAllDisplays();
         });
     }
@@ -1351,6 +1330,31 @@ class MedMateApp {
         this.updateElementText('#progressTheoriesCompleted', this.userStats.theories.completed);
         this.updateElementText('#progressStationsCompleted', this.userStats.stations.completed);
         this.updateElementText('#progressTasksCompleted', this.userStats.tasks.completed);
+        
+        // Calculate accuracy percentages
+        const theoryAccuracy = this.userStats.theories.completed > 0 ? 
+            Math.round((this.userStats.theories.correct / this.userStats.theories.completed) * 100) : 0;
+        const taskAccuracy = this.userStats.tasks.completed > 0 ? 
+            Math.round((this.userStats.tasks.correct / this.userStats.tasks.completed) * 100) : 0;
+        
+        this.updateElementText('#progressTheoriesAccuracy', `${theoryAccuracy}%`);
+        this.updateElementText('#progressTasksAccuracy', `${taskAccuracy}%`);
+        
+        // Calculate average station score
+        const stationScores = Object.values(this.userStats.stations.scores);
+        const averageScore = stationScores.length > 0 ? 
+            Math.round(stationScores.reduce((a, b) => a + b, 0) / stationScores.length) : 0;
+        this.updateElementText('#progressStationsScore', averageScore);
+        
+        // Update overall progress
+        const totalProgress = Math.round((
+            (this.userStats.theories.completed / this.userStats.theories.total) +
+            (this.userStats.stations.completed / this.userStats.stations.total) +
+            (this.userStats.tasks.completed / this.userStats.tasks.total)
+        ) / 3 * 100);
+        
+        this.updateProgressBar('#overallProgress', totalProgress);
+        this.updateElementText('#overallProgressText', `${totalProgress}%`);
     }
 
     // Utility Methods
